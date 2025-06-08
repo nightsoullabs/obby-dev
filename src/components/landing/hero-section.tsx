@@ -20,8 +20,8 @@ export function HeroSection() {
           </span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Create full-stack applications, mobile apps, and websites by simply
-          describing what you want to build
+          Open source v0 and Lovable alternative. Create full-stack applications
+          by simply describing what you want to build.
         </p>
       </div>
     </div>
