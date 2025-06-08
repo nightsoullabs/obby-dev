@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
+    NODE_ENV: z.enum(["development", "production"]).default("development"),
     CONVEX_DEPLOYMENT: z.string().url(),
     WORKOS_API_KEY: z.string().min(1),
     WORKOS_CLIENT_ID: z.string().min(1),
@@ -25,6 +26,7 @@ export const env = createEnv({
   },
   // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
   runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
     CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_WORKOS_REDIRECT_URI:
