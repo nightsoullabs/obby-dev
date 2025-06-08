@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:next": "next dev",
+    "dev:next": "next dev --turbopack",
     "dev:convex": "npx convex dev",
     "dev": "concurrently \"pnpm run dev:next\" \"pnpm run dev:convex\"",
-    "build": "next build",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome format --write . && biome lint .",
     "lint:fix": "biome lint . --write && biome format --write ."
