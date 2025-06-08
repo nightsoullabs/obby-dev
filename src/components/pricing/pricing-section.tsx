@@ -1,6 +1,9 @@
 import { generateArrayKey } from "@/lib/utils/array-utils";
 import { PricingCard } from "./pricing-card";
 
+// TODO: Need to rework this entrirely. Main plan is to have a $10 sub with BYOK
+// I'm thinking of introducing a BYOK in free tier with msg limits (so convex bills wont go brr)
+
 const pricingPlans = [
   {
     title: "Free",
@@ -12,8 +15,8 @@ const pricingPlans = [
     buttonVariant: "outline" as const,
   },
   {
-    title: "Premium",
-    price: "$20",
+    title: "Pro",
+    price: "$10",
     period: "/month",
     description: "For higher limits and power users.",
     features: [
@@ -21,6 +24,7 @@ const pricingPlans = [
       "Higher Agent use",
       "Higher image quality",
       "5x higher attachment size limit",
+      "BYOK (Bring Your Own Key) for unlimited use",
       "Import from Figma",
       "Priority support",
     ],
@@ -29,7 +33,7 @@ const pricingPlans = [
     recommended: true,
   },
   {
-    title: "Team",
+    title: "Pro Max",
     price: "$30",
     period: "/user/month",
     description: "For fast moving teams and collaboration.",
@@ -38,7 +42,7 @@ const pricingPlans = [
       "Share chats between teams",
       "Admin panel to manage team members",
       "Team collaboration tools",
-      "Advanced analytics",
+      "BYOK (Bring Your Own Key) for unlimited use",
       "Priority support",
     ],
     buttonText: "Upgrade to Team",
