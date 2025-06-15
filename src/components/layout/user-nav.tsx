@@ -33,6 +33,7 @@ import type { User } from "@workos-inc/node";
 import authkitSignOut from "@/actions/signOut";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { Skeleton } from "../ui/skeleton";
 
 export function UserNav({
   user,
@@ -70,7 +71,7 @@ export function UserNav({
   ];
 
   if (!mounted) {
-    return null; // Avoid hydration mismatch
+    return <Skeleton className="rounded-full size-8" />; // Avoid hydration mismatch
   }
 
   return (
