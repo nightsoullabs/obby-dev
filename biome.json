@@ -12,6 +12,7 @@
       ".next",
       ".turbo",
       ".vercel",
+      ".local",
       "convex/_generated",
       "components/ui",
       "public",
