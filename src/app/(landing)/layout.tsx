@@ -9,7 +9,6 @@ export default async function Layout({
 }>) {
   return (
     <div className="[--header-height:calc(--spacing(14))]">
-      landing layout
       <SidebarProvider className="flex flex-col">
         <Header />
         <div className="flex flex-1">

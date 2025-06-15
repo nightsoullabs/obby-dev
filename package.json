@@ -19,6 +19,9 @@
     "@ai-sdk/react": "^1.2.12",
     "@ai-sdk/xai": "^1.2.16",
     "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/language": "^6.11.1",
+    "@codemirror/view": "^6.37.2",
     "@codesandbox/sandpack-react": "^2.20.0",
     "@codesandbox/sandpack-themes": "^2.0.21",
     "@hookform/resolvers": "^5.0.1",
@@ -94,7 +97,14 @@
     "typescript": "^5"
   },
   "description": "An open source version of v0 and lovable",
-  "keywords": ["nextjs", "next", "v0", "bolt", "replit", "lovable"],
+  "keywords": [
+    "nextjs",
+    "next",
+    "v0",
+    "bolt",
+    "replit",
+    "lovable"
+  ],
   "author": "eersnington",
   "license": "MIT",
   "homepage": "https://obby.dev",

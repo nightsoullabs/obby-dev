@@ -9,7 +9,7 @@ export default async function Page(props: {
   console.log("Chat ID", id);
 
   return (
-    <div className="h-full w-full flex flex-col p-2 font-mono">
+    <div className="h-full w-full overflow-hidden">
       <EditorClient />
     </div>
   );

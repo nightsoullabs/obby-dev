@@ -58,14 +58,14 @@ export function ChatPanel() {
   };
 
   return (
-    <Card className="h-full flex flex-col ">
-      <ScrollArea className="h-full p-4 space-y-2">
+    <Card className="h-full flex flex-col bg-accent/30 border-1 border-accent overflow-hidden">
+      <ScrollArea className="flex-1 p-4 space-y-2 overflow-y-auto">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex flex-col space-y-1 ${message.isUser ? "items-end" : "items-start"}`}
           >
-            <div className={"max-w-[85%] rounded-xl p-4 shadow-sm "}>
+            <div className={"max-w-[85%] rounded-xl p-4"}>
               <p className="text-sm">{message.content}</p>
             </div>
             <span className="text-xs text-muted-foreground">
@@ -75,13 +75,13 @@ export function ChatPanel() {
         ))}
       </ScrollArea>
 
-      <CardFooter className="flex flex-col items-center justify-center pt-2 border-t space-y-2">
+      <CardFooter className="border-t p-2 flex flex-col space-y-2">
         <div className="flex w-full items-center space-x-2">
           <Input
             placeholder="Type your message..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
             className="flex-1 rounded-lg border-border/50 bg-background/50 focus:bg-background transition-all"
           />
           <Button onClick={handleSend} size="sm" className="rounded-lg px-4">

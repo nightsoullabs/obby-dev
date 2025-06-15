@@ -6,9 +6,9 @@ export default async function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="h-screen w-full flex flex-col">
+    <div className="h-screen w-full flex flex-col overflow-hidden">
       <ChatPageHeader />
-      {children}
+      <div className="flex-1 overflow-auto">{children}</div>
     </div>
   );
 }

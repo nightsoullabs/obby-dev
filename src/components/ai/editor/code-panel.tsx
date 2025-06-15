@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
+
+import { atomDark } from "@codesandbox/sandpack-themes";
 import {
   SandpackProvider,
   SandpackLayout,
@@ -13,8 +14,20 @@ import {
   SandpackPreview,
   SandpackConsole,
 } from "@codesandbox/sandpack-react";
-import { atomDark } from "@codesandbox/sandpack-themes";
-import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import {
+  autocompletion,
+  closeBrackets,
+  completionKeymap,
+  closeBracketsKeymap,
+} from "@codemirror/autocomplete";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import {
+  bracketMatching,
+  foldGutter,
+  indentOnInput,
+  indentUnit,
+} from "@codemirror/language";
+import { drawSelection, dropCursor, scrollPastEnd } from "@codemirror/view";
 
 const initialFiles = {
   "/App.js": `import React from 'react';
@@ -39,6 +52,13 @@ root.render(<App />);`,
 }`,
 };
 
+/*
+TODO: 
+Few issues to solve:
+- foldGutter() has a few bugs where it spawns extra chevrons. no idea why that happens
+- full height is hiding the buttons. i probably have to use sandpack states
+*/
+
 export function CodePanel() {
   const [activeTab, setActiveTab] = useState("code");
   const [isSaving, setIsSaving] = useState(false);
@@ -51,22 +71,13 @@ export function CodePanel() {
   };
 
   return (
-    <div className="h-full flex flex-col border rounded-lg">
+    <div className="h-full w-full flex flex-col overflow-clip border border-accent rounded-lg pt-2 bg-accent/30">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-transparent flex justify-between items-center border">
+        <TabsList className="bg-transparent flex justify-between items-center px-2">
           <div className="flex items-center gap-2">
-            <TabsTrigger
-              value="code"
-              className="data-[state=active]:bg-muted data-[state=active]:shadow-sm rounded-lg"
-            >
-              Code
-            </TabsTrigger>
-            <TabsTrigger
-              value="preview"
-              className="data-[state=active]:bg-muted data-[state=active]:shadow-sm rounded-lg"
-            >
-              Preview
-            </TabsTrigger>
+            <TabsTrigger value="code">Code</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="console">Console</TabsTrigger>
           </div>
           {activeTab === "code" && (
             <Button
@@ -94,29 +105,64 @@ export function CodePanel() {
         <SandpackProvider
           files={initialFiles}
           theme={atomDark}
-          template="nextjs"
+          template="react"
         >
-          <TabsContent value="code">
-            <SandpackLayout>
-              <SandpackFileExplorer />
+          <TabsContent value="code" className="overflow-auto">
+            <SandpackLayout
+              style={{
+                borderRadius: "0 0 0.5rem 0.5rem",
+              }}
+            >
+              <SandpackFileExplorer style={{ height: "100vh" }} />
               <SandpackCodeEditor
+                showRunButton
                 showTabs
                 closableTabs
                 showLineNumbers
                 showInlineErrors
                 wrapContent
-                extensions={[autocompletion()]}
-                extensionsKeymap={[...completionKeymap]}
+                extensions={[
+                  indentUnit.of("\t"),
+                  bracketMatching(),
+                  foldGutter(),
+                  history(),
+                  indentOnInput(),
+                  autocompletion({ closeOnBlur: false }),
+                  closeBrackets(),
+                  scrollPastEnd(),
+                  dropCursor(),
+                  drawSelection(),
+                  bracketMatching(),
+                  indentOnInput(),
+                ]}
+                extensionsKeymap={[
+                  ...completionKeymap,
+                  ...closeBracketsKeymap,
+                  ...defaultKeymap,
+                  ...historyKeymap,
+                ]}
+                style={{ height: "100vh" }}
               />
-              <SandpackConsole />
             </SandpackLayout>
           </TabsContent>
 
-          <TabsContent value="preview">
-            <SandpackPreview
-              showOpenInCodeSandbox={false}
-              showRefreshButton={true}
-            />
+          <TabsContent value="preview" className="overflow-auto">
+            <SandpackLayout style={{ borderRadius: "0 0 0.5rem 0.5rem" }}>
+              <SandpackPreview
+                autoSave="true"
+                showOpenNewtab
+                // showNavigator
+                showRefreshButton
+                showOpenInCodeSandbox={true}
+                style={{ height: "100vh" }}
+              />
+            </SandpackLayout>
+          </TabsContent>
+
+          <TabsContent value="console" className="overflow-auto">
+            <SandpackLayout style={{ borderRadius: "0 0 0.5rem 0.5rem" }}>
+              <SandpackConsole style={{ height: "100vh" }} />
+            </SandpackLayout>
           </TabsContent>
         </SandpackProvider>
       </Tabs>
