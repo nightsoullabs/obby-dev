@@ -25,7 +25,7 @@ import {
   indentUnit,
 } from "@codemirror/language";
 import { drawSelection, dropCursor, scrollPastEnd } from "@codemirror/view";
-import { SandpackRefreshButton } from "./sandpack-refresh";
+import { PrettierWrapper } from "./prettier-plugin";
 
 /*
 TODO: 
@@ -43,9 +43,12 @@ export function CodePanel() {
         // files={initialFiles}
         theme={atomDark}
         template="react-ts"
-        customSetup={{
-          entry: "",
-        }}
+        // customSetup={{
+        //   dependencies: repoDependencies.dependencies,
+        //   devDependencies: repoDependencies.devDependencies,
+        //   // environment: "create-react-app-typescript",
+        // }}
+        // files={repoData.files}
       >
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent flex justify-between items-center px-2">
@@ -64,34 +67,36 @@ export function CodePanel() {
               }}
             >
               <SandpackFileExplorer style={{ height: "100vh" }} />
-              <SandpackCodeEditor
-                showTabs
-                closableTabs
-                showLineNumbers
-                showInlineErrors
-                wrapContent
-                extensions={[
-                  indentUnit.of("\t"),
-                  bracketMatching(),
-                  foldGutter(),
-                  history(),
-                  indentOnInput(),
-                  autocompletion({ closeOnBlur: false }),
-                  closeBrackets(),
-                  scrollPastEnd(),
-                  dropCursor(),
-                  drawSelection(),
-                  bracketMatching(),
-                  indentOnInput(),
-                ]}
-                extensionsKeymap={[
-                  ...completionKeymap,
-                  ...closeBracketsKeymap,
-                  ...defaultKeymap,
-                  ...historyKeymap,
-                ]}
-                style={{ height: "100vh" }}
-              />
+              <PrettierWrapper>
+                <SandpackCodeEditor
+                  showTabs
+                  closableTabs
+                  showLineNumbers
+                  showInlineErrors
+                  wrapContent
+                  extensions={[
+                    indentUnit.of("\t"),
+                    bracketMatching(),
+                    foldGutter(),
+                    history(),
+                    indentOnInput(),
+                    autocompletion({ closeOnBlur: false }),
+                    closeBrackets(),
+                    scrollPastEnd(),
+                    dropCursor(),
+                    drawSelection(),
+                    bracketMatching(),
+                    indentOnInput(),
+                  ]}
+                  extensionsKeymap={[
+                    ...completionKeymap,
+                    ...closeBracketsKeymap,
+                    ...defaultKeymap,
+                    ...historyKeymap,
+                  ]}
+                  style={{ height: "100vh" }}
+                />
+              </PrettierWrapper>
             </SandpackLayout>
           </TabsContent>
 
