@@ -5,6 +5,8 @@ import { Logo } from "../logo";
 import Link from "next/link";
 import FeedbackModal from "./feedback-dialog";
 import { SignUpButton } from "./sign-up-button";
+import { Suspense } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 export async function Header() {
   const { user, role } = await withAuth();
@@ -44,7 +46,11 @@ export async function Header() {
                   </Link>
                 )}
                 <FeedbackModal />
-                <UserNav user={user} role={role} />
+                <Suspense
+                  fallback={<Skeleton className="size-7 rounded-full" />}
+                >
+                  <UserNav user={user} role={role} />
+                </Suspense>
               </>
             )}
           </div>
