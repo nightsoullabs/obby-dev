@@ -12,7 +12,7 @@
       ".next",
       ".turbo",
       ".vercel",
-      "convex",
+      "convex/_generated",
       "components/ui",
       "public",
       "coverage"

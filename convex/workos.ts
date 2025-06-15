@@ -9,7 +9,7 @@ export const verifyWebhook = internalAction({
     payload: v.string(),
     signature: v.string(),
   }),
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const workos = new WorkOS(process.env.WORKOS_API_KEY);
 
     return await workos.webhooks.constructEvent({

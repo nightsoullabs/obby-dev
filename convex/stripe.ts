@@ -9,7 +9,7 @@ export const verifyStripeWebhook = internalAction({
     payload: v.string(),
     signature: v.string(),
   }),
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const stripe = new Stripe(process.env.STRIPE_API_KEY as string);
 
     return await stripe.webhooks.constructEvent(
