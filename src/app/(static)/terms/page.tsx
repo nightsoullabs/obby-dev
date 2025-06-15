@@ -20,7 +20,7 @@ export default function TermsPage() {
             </p>
 
             <p className="text-sm text-muted-foreground mb-8">
-              <strong>Effective Date:</strong> May 1, 2025
+              <strong>Effective Date:</strong> June 10, 2025
             </p>
 
             <div className="space-y-8">
@@ -162,8 +162,7 @@ export default function TermsPage() {
                 <h3 className="text-xl font-medium mb-3">7.2 Liability Cap</h3>
                 <p>
                   In no event shall Obby's total liability exceed the greater of
-                  $50 or the amount paid by you in the last one month for using
-                  the Services.
+                  $50 for using the Services.
                 </p>
               </section>
 
@@ -231,7 +230,7 @@ export default function TermsPage() {
 
               <div className="border-t pt-8 mt-12">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Last updated:</strong> May 1, 2025
+                  <strong>Last updated:</strong> June 10, 2025
                 </p>
               </div>
             </div>

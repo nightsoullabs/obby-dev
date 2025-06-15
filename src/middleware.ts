@@ -1,13 +1,8 @@
-import { authkitMiddleware } from "@workos-inc/authkit-nextjs";
+import { authkit } from "@workos-inc/authkit-nextjs";
+import { NextResponse, type NextRequest } from "next/server";
 
 // Protected routes are determined via the use of the withAuth method,
 // specifically whether the ensureSignedIn option is used.
-
-// return NextResponse.rewrite(new URL(`/s/${subdomain}`, request.url));
-
-import { authkit } from "@workos-inc/authkit-nextjs";
-import { redirect } from "next/dist/server/api-utils";
-import { NextResponse, type NextRequest } from "next/server";
 
 export default async function middleware(request: NextRequest) {
   // Auth object contains the session, response headers and an auhorization
@@ -21,6 +16,7 @@ export default async function middleware(request: NextRequest) {
     debug: true,
   });
 
+  // rewriting path of nerds who try to access the /chat page without any chat id
   if (request.url.endsWith("/chat")) {
     console.log("No session on protected path");
     return NextResponse.rewrite(new URL("/", request.url), {

@@ -16,7 +16,7 @@ export default function RefundPolicyPage() {
             </p>
 
             <p className="text-sm text-muted-foreground mb-8">
-              <strong>Effective Date:</strong> May 1, 2025
+              <strong>Effective Date:</strong> June 10, 2025
             </p>
 
             <div className="space-y-8">
@@ -186,7 +186,7 @@ export default function RefundPolicyPage() {
 
               <div className="border-t pt-8 mt-12">
                 <p className="text-sm text-muted-foreground">
-                  <strong>Last updated:</strong> May 1, 2025
+                  <strong>Last updated:</strong> June 10, 2025
                 </p>
               </div>
             </div>
