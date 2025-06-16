@@ -167,6 +167,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      dedent:
+        specifier: ^1.6.0
+        version: 1.6.0
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.0)
@@ -182,6 +185,9 @@ importers:
       lucide-react:
         specifier: ^0.511.0
         version: 0.511.0(react@19.1.0)
+      motion:
+        specifier: ^12.18.1
+        version: 12.18.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next:
         specifier: 15.3.3
         version: 15.3.3(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -212,6 +218,9 @@ importers:
       recharts:
         specifier: ^2.15.3
         version: 2.15.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       sonner:
         specifier: ^2.0.3
         version: 2.0.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -2080,6 +2089,14 @@ packages:
   decimal.js-light@2.5.1:
     resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
 
+  dedent@1.6.0:
+    resolution: {integrity: sha512-F1Z+5UCFpmQUzJa11agbyPVMbpgT/qA3/SKyJ1jyBgm7dUcUEa8v9JwDkerSQXfakBwFljIxhOJqGkjUwZ9FSA==}
+    peerDependencies:
+      babel-plugin-macros: ^3.1.0
+    peerDependenciesMeta:
+      babel-plugin-macros:
+        optional: true
+
   dequal@2.0.3:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
     engines: {node: '>=6'}
@@ -2176,6 +2193,20 @@ packages:
   fast-equals@5.2.2:
     resolution: {integrity: sha512-V7/RktU11J3I36Nwq2JnZEM7tNm17eBJz+u25qdxBZeCKiX6BkVSZQjwWIr+IobgnZy+ag73tTZgZi7tr0LrBw==}
     engines: {node: '>=6.0.0'}
+
+  framer-motion@12.18.1:
+    resolution: {integrity: sha512-6o4EDuRPLk4LSZ1kRnnEOurbQ86MklVk+Y1rFBUKiF+d2pCdvMjWVu0ZkyMVCTwl5UyTH2n/zJEJx+jvTYuxow==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
@@ -2394,6 +2425,26 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  motion-dom@12.18.1:
+    resolution: {integrity: sha512-dR/4EYT23Snd+eUSLrde63Ws3oXQtJNw/krgautvTfwrN/2cHfCZMdu6CeTxVfRRWREW3Fy1f5vobRDiBb/q+w==}
+
+  motion-utils@12.18.1:
+    resolution: {integrity: sha512-az26YDU4WoDP0ueAkUtABLk2BIxe28d8NH1qWT8jPGhPyf44XTdDUh8pDk9OPphaSrR9McgpcJlgwSOIw/sfkA==}
+
+  motion@12.18.1:
+    resolution: {integrity: sha512-w1ns2hWQ4COhOvnZf4rg4mW0Pl36mzcShpgt0fSfI6qJxKUbi3kHho/HSKeJFRoY0TO1m5/7C8lG1+Li0uC9Fw==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -2608,6 +2659,9 @@ packages:
     resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
     engines: {node: '>=10'}
     hasBin: true
+
+  server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
 
   sharp@0.34.2:
     resolution: {integrity: sha512-lszvBmB9QURERtyKT2bNmsgxXK0ShJrL/fvqlonCo7e6xBF8nT8xU6pW+PMIbLsz0RxQk3rgH9kd8UmvOzlMJg==}
@@ -4624,6 +4678,8 @@ snapshots:
 
   decimal.js-light@2.5.1: {}
 
+  dedent@1.6.0: {}
+
   dequal@2.0.3: {}
 
   detect-libc@2.0.4: {}
@@ -4741,6 +4797,15 @@ snapshots:
       type: 2.7.3
 
   fast-equals@5.2.2: {}
+
+  framer-motion@12.18.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      motion-dom: 12.18.1
+      motion-utils: 12.18.1
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   function-bind@1.1.2: {}
 
@@ -4910,6 +4975,20 @@ snapshots:
       minipass: 7.1.2
 
   mkdirp@3.0.1: {}
+
+  motion-dom@12.18.1:
+    dependencies:
+      motion-utils: 12.18.1
+
+  motion-utils@12.18.1: {}
+
+  motion@12.18.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      framer-motion: 12.18.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   nanoid@3.3.11: {}
 
@@ -5165,6 +5244,8 @@ snapshots:
 
   semver@7.7.2:
     optional: true
+
+  server-only@0.0.1: {}
 
   sharp@0.34.2:
     dependencies:

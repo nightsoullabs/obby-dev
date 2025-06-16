@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { atomDark } from "@codesandbox/sandpack-themes";
+import { atomDark, aquaBlue } from "@codesandbox/sandpack-themes";
 import {
   SandpackProvider,
   SandpackLayout,
@@ -27,6 +27,8 @@ import {
 import { drawSelection, dropCursor, scrollPastEnd } from "@codemirror/view";
 import { PrettierWrapper } from "./prettier-plugin";
 
+import { useTheme } from "next-themes";
+
 /*
 TODO: 
 Few issues to solve:
@@ -37,18 +39,29 @@ Few issues to solve:
 export function CodePanel() {
   const [activeTab, setActiveTab] = useState("code");
 
+  const { resolvedTheme } = useTheme();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null; // Prevents hydration mismatch
+  }
+
   return (
     <div className="h-full w-full flex flex-col overflow-clip border border-accent rounded-lg pt-2 bg-accent/30">
       <SandpackProvider
         // files={initialFiles}
-        theme={atomDark}
-        template="react-ts"
+        theme={resolvedTheme === "dark" ? atomDark : aquaBlue}
+        template="vite-react-ts"
         // customSetup={{
         //   dependencies: repoDependencies.dependencies,
         //   devDependencies: repoDependencies.devDependencies,
-        //   // environment: "create-react-app-typescript",
         // }}
-        // files={repoData.files}
+        // files={repoFiles}
       >
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent flex justify-between items-center px-2">
@@ -66,10 +79,12 @@ export function CodePanel() {
                 borderRadius: "0 0 0.5rem 0.5rem",
               }}
             >
-              <SandpackFileExplorer style={{ height: "100vh" }} />
+              <SandpackFileExplorer style={{ height: "80vh" }} />
+
               <PrettierWrapper>
                 <SandpackCodeEditor
-                  showTabs
+                  showRunButton
+                  showTabs={false}
                   closableTabs
                   showLineNumbers
                   showInlineErrors
@@ -94,7 +109,7 @@ export function CodePanel() {
                     ...defaultKeymap,
                     ...historyKeymap,
                   ]}
-                  style={{ height: "100vh" }}
+                  style={{ height: "80vh" }}
                 />
               </PrettierWrapper>
             </SandpackLayout>
@@ -105,17 +120,17 @@ export function CodePanel() {
               <SandpackPreview
                 autoSave="true"
                 showOpenNewtab
-                // showNavigator
+                showNavigator
                 showRefreshButton
                 showOpenInCodeSandbox={true}
-                style={{ height: "100vh" }}
+                style={{ height: "80vh" }}
               />
             </SandpackLayout>
           </TabsContent>
 
           <TabsContent value="console" className="overflow-auto">
             <SandpackLayout style={{ borderRadius: "0 0 0.5rem 0.5rem" }}>
-              <SandpackConsole style={{ height: "100vh" }} />
+              <SandpackConsole style={{ height: "80vh" }} />
             </SandpackLayout>
           </TabsContent>
         </Tabs>
