@@ -138,18 +138,6 @@ export const AI_MODELS: Record<string, ModelInfo> = {
       reasoning: true,
     },
   },
-  "anthropic:claude-3.5-haiku": {
-    id: "anthropic:claude-3.5-haiku",
-    name: "Claude 3.5 Haiku",
-    provider: "anthropic",
-    description: "Fast Claude model",
-    capabilities: {
-      text: true,
-      vision: false,
-      tools: true,
-      reasoning: false,
-    },
-  },
 
   // Google Models
   "google:gemini-2.5-pro": {
@@ -188,36 +176,10 @@ export const AI_MODELS: Record<string, ModelInfo> = {
       reasoning: true,
     },
   },
-
-  // xAI Models
-  "xai:grok-3-mini": {
-    id: "xai:grok-3-mini",
-    name: "Grok 3 Mini",
-    provider: "xai",
-    description: "Compact Grok model",
-    capabilities: {
-      text: true,
-      vision: false,
-      tools: true,
-      reasoning: true,
-    },
-  },
-};
-
-export const MODEL_ALIASES: Record<string, string> = {
-  openai: "openai:gpt-4o",
-  anthropic: "anthropic:claude-sonnet-4",
-  claude: "anthropic:claude-sonnet-4",
-  google: "google:gemini-2.5-pro",
-  gemini: "google:gemini-2.5-pro",
-  xai: "xai:grok-3-mini",
-  grok: "xai:grok-3-mini",
-  obbylabs: "obbylabs:agent-chat",
 };
 
 export function getModelInfo(modelId: string): ModelInfo | null {
-  const resolvedId = MODEL_ALIASES[modelId] || modelId;
-  return AI_MODELS[resolvedId] || null;
+  return AI_MODELS[modelId] || null;
 }
 
 export function getAllModels(): ModelInfo[] {
@@ -230,20 +192,14 @@ export function getModelsByProvider(provider: string): ModelInfo[] {
   );
 }
 
-export function resolveModelId(input: string): string {
-  return MODEL_ALIASES[input] || input;
-}
-
 export function isValidModelId(modelId: string): boolean {
-  const resolvedId = resolveModelId(modelId);
-  return resolvedId in AI_MODELS;
+  return modelId in AI_MODELS;
 }
 
 export function getProviderFromModelId(modelId: string): string | null {
-  const resolvedId = resolveModelId(modelId);
-  const [provider] = resolvedId.split(":");
+  const [provider] = modelId.split(":");
 
-  if (!provider || !isValidModelId(resolvedId)) {
+  if (!provider || !isValidModelId(modelId)) {
     return null;
   }
 
@@ -256,15 +212,14 @@ export function validateModelIdFormat(modelId: string): {
   model: string | null;
   resolvedId: string;
 } {
-  const resolvedId = resolveModelId(modelId);
-  const [provider, model] = resolvedId.split(":");
+  const [provider, model] = modelId.split(":");
 
-  const isValid = provider && model && isValidModelId(resolvedId);
+  const isValid = provider && model && isValidModelId(modelId);
 
   return {
     isValid: Boolean(isValid),
     provider: provider || null,
     model: model || null,
-    resolvedId,
+    resolvedId: modelId,
   };
 }

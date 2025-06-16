@@ -3,9 +3,13 @@ import "server-only"; // this file is  ensure this file should only be used in t
 import { openai as originalOpenAI } from "@ai-sdk/openai";
 import { anthropic as originalAnthropic } from "@ai-sdk/anthropic";
 import { google as originalGoogle } from "@ai-sdk/google";
-import { xai as originalXAI } from "@ai-sdk/xai";
+import {
+  customProvider,
+  createProviderRegistry,
+  type LanguageModelV1,
+} from "ai";
 
-import { customProvider, createProviderRegistry } from "ai";
+import { validateModelIdFormat } from "./models";
 
 export const obbylabs = customProvider({
   languageModels: {
@@ -34,7 +38,6 @@ export const anthropic = customProvider({
   languageModels: {
     "claude-sonnet-4": originalAnthropic("claude-4-sonnet-20250514"),
     "claude-3.7-sonnet": originalAnthropic("claude-3-7-sonnet-20250219"),
-    "claude-3.5-haiku": originalAnthropic("claude-3-5-haiku-20241022"),
   },
   fallbackProvider: originalAnthropic,
 });
@@ -48,23 +51,12 @@ export const google = customProvider({
   fallbackProvider: originalGoogle,
 });
 
-export const xai = customProvider({
-  languageModels: {
-    "grok-3-mini": originalXAI("grok-3-mini"),
-  },
-  fallbackProvider: originalXAI,
-});
-
 export const registry = createProviderRegistry({
   openai,
   anthropic,
   google,
-  xai,
   obbylabs,
 });
-
-import { validateModelIdFormat } from "./models";
-import type { LanguageModelV1 } from "ai";
 
 export function getModelFromRegistry(modelId: string): LanguageModelV1 {
   const validation = validateModelIdFormat(modelId);
@@ -82,8 +74,6 @@ export function getModelFromRegistry(modelId: string): LanguageModelV1 {
       return registry.languageModel(resolvedId as `anthropic:${string}`);
     case "google":
       return registry.languageModel(resolvedId as `google:${string}`);
-    case "xai":
-      return registry.languageModel(resolvedId as `xai:${string}`);
     case "obbylabs":
       return registry.languageModel(resolvedId as `obbylabs:${string}`);
     default:
