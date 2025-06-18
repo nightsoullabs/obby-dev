@@ -30,7 +30,8 @@ export default defineSchema({
     user_id: v.id("users"),
     title: v.string(),
     messages: v.any(), // JSON structure for messages
-    fileData: v.optional(v.any()), // I'm not sure about the type here, adjust as needed
+    fileData: v.optional(v.any()), // File attachments data
+    fragments: v.optional(v.any()), // AI fragments data
     visibility: v.union(v.literal("private"), v.literal("public")),
   })
     .index("by_user_id", ["user_id"])
@@ -41,6 +42,5 @@ export default defineSchema({
     chat_id: v.id("chats"),
     role: v.string(),
     parts: v.array(v.string()),
-  })
-    .index("by_chat_id", ["chat_id"])
+  }).index("by_chat_id", ["chat_id"]),
 });

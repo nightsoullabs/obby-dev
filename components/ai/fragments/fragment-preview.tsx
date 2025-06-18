@@ -2,7 +2,7 @@
 
 import { FragmentInterpreter } from "./fragment-interpreter";
 import { FragmentWeb } from "./fragment-web";
-import { ExecutionResult } from "lib/types";
+import type { ExecutionResult } from "lib/types";
 
 export function FragmentPreview({ result }: { result: ExecutionResult }) {
   if (result.template === "code-interpreter-v1") {

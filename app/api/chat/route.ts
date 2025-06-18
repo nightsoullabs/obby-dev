@@ -34,6 +34,8 @@ export async function POST(req: Request) {
     };
   } = await req.json();
 
+  console.log("[req]", messages, userID, teamID, model, config);
+
   const llmModel = getModelFromRegistry(model);
 
   const limit = !config.apiKey

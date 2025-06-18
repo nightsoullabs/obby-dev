@@ -14,13 +14,14 @@ import templates, { type TemplateId } from "lib/templates";
 import type { ExecutionResult } from "lib/types";
 import type { DeepPartial } from "ai";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import type { Id } from "@/convex/_generated/_generated/dataModel";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 // import { usePostHog } from "posthog-js/react";
 import { type SetStateAction, useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
+import { toast } from "sonner";
 
 interface AIClientProps {
   chatId?: Id<"chats">;
@@ -59,14 +60,24 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
   const [isAuthDialogOpen, setAuthDialog] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { user, loading, sessionId } = useAuth();
+  const { user, loading } = useAuth();
 
   // Convex mutations for chat persistence
   const updateChatMessages = useMutation(api.chats.addMessageToChat);
+  const addMessageWithFragment = useMutation(api.chats.addMessageWithFragment);
+
+  // Real-time chat data from Convex
+  const chatData = useQuery(
+    api.chats.watchChat,
+    chatId ? { id: chatId } : "skip",
+  );
 
   const currentModel = AI_MODELS.find((model) => model.id === languageModel.id);
 
-  const lastMessage = messages[messages.length - 1];
+  // Use real-time data from Convex, fallback to initial data and local state
+  const effectiveMessages: Message[] =
+    (chatData?.messages as Message[]) || initialChatData?.messages || messages;
+  const lastMessage = effectiveMessages[effectiveMessages.length - 1];
 
   const { object, submit, isLoading, stop, error } = useObject({
     api: "/api/chat",
@@ -80,31 +91,67 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
       setErrorMessage(error.message);
     },
     onFinish: async ({ object: fragment, error }) => {
-      if (!error) {
-        // send it to /api/sandbox
+      if (!error && fragment) {
         console.log("fragment", fragment);
         setIsPreviewLoading(true);
-        // posthog.capture("fragment_generated", {
-        //   template: fragment?.template,
-        // });
 
-        const response = await fetch("/api/sandbox", {
-          method: "POST",
-          body: JSON.stringify({
-            fragment,
-            userID: user?.id,
-          }),
-        });
+        // Create assistant message with fragment
+        const assistantMessage: Message = {
+          role: "assistant" as const,
+          content: [
+            { type: "text" as const, text: fragment.commentary || "" },
+            { type: "code" as const, text: fragment.code || "" },
+          ],
+          object: fragment,
+        };
 
-        const result = await response.json();
-        console.log("result", result);
-        // posthog.capture("sandbox_created", { url: result.url });
+        // Save message and fragment to database atomically
+        if (chatId) {
+          try {
+            await addMessageWithFragment({
+              id: chatId,
+              message: assistantMessage,
+              fragment: fragment,
+            });
+          } catch (error) {
+            console.error("Failed to save message with fragment:", error);
+          }
+        } else {
+          // Fallback to local state if no chatId
+          addMessage(assistantMessage);
+        }
 
-        setResult(result);
-        setCurrentPreview({ fragment, result });
-        setMessage({ result });
-        setCurrentTab("fragment");
-        setIsPreviewLoading(false);
+        // Continue with sandbox creation
+        try {
+          const response = await fetch("/api/sandbox", {
+            method: "POST",
+            body: JSON.stringify({
+              fragment,
+              userID: user?.id,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error("Sandbox creation failed:", response.status);
+            setCurrentPreview({ fragment, result: undefined });
+            setCurrentTab("fragment");
+            setIsPreviewLoading(false);
+            return;
+          }
+
+          const result = await response.json();
+          console.log("result", result);
+
+          setResult(result);
+          setCurrentPreview({ fragment, result });
+          setCurrentTab("fragment");
+          setIsPreviewLoading(false);
+        } catch (error) {
+          console.error("Error creating sandbox:", error);
+          setCurrentPreview({ fragment, result: undefined });
+          setCurrentTab("fragment");
+          setIsPreviewLoading(false);
+        }
       }
     },
   });
@@ -124,49 +171,41 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
     }
   }, [initialChatData]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: incorrect suggestion
+  // Auto-submit for new chats with only a user message (from landing page)
+  useEffect(() => {
+    if (
+      user &&
+      !isLoading &&
+      chatId &&
+      effectiveMessages.length === 1 &&
+      effectiveMessages[0].role === "user" &&
+      currentModel?.id
+    ) {
+      console.log("Auto-submitting initial message for new chat");
+      submit({
+        userID: user.id,
+        teamID: "none",
+        messages: toAISDKMessages(effectiveMessages),
+        model: currentModel.id,
+        config: languageModel,
+      });
+    }
+  }, [
+    user,
+    isLoading,
+    chatId,
+    effectiveMessages,
+    currentModel,
+    languageModel,
+    submit,
+  ]);
+
+  // Update local fragment state when object changes (for UI display)
   useEffect(() => {
     if (object) {
       setFragment(object);
-      const content: Message["content"] = [
-        { type: "text", text: object.commentary || "" },
-        { type: "code", text: object.code || "" },
-      ];
-
-      if (!lastMessage || lastMessage.role !== "assistant") {
-        const newMessage = {
-          role: "assistant" as const,
-          content,
-          object,
-        };
-        addMessage(newMessage);
-
-        // Save to database if we have a chatId
-        if (chatId) {
-          const updatedMessages = [...messages, newMessage];
-          updateChatMessages({
-            id: chatId,
-            messages: updatedMessages,
-          });
-        }
-      }
-
-      if (lastMessage && lastMessage.role === "assistant") {
-        setMessage({
-          content,
-          object,
-        });
-
-        // Update database with modified message
-        if (chatId) {
-          updateChatMessages({
-            id: chatId,
-            messages: messages,
-          });
-        }
-      }
     }
-  }, [object, chatId, messages]);
+  }, [object]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {
@@ -205,19 +244,24 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
       }
     }
 
-    const newUserMessage = {
+    const newUserMessage: Message = {
       role: "user" as const,
       content,
     };
 
+    // Optimistic update for immediate UI feedback
     const updatedMessages = addMessage(newUserMessage);
 
     // Save user message to database if we have a chatId
     if (chatId) {
-      updateChatMessages({
-        id: chatId,
-        messages: updatedMessages,
-      });
+      try {
+        await addMessageWithFragment({
+          id: chatId,
+          message: newUserMessage,
+        });
+      } catch (error) {
+        console.error("Failed to save user message:", error);
+      }
     }
 
     submit({
@@ -242,15 +286,19 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
     submit({
       userID: user?.id,
       teamID: "none",
-      messages: toAISDKMessages(messages),
+      messages: toAISDKMessages(effectiveMessages),
       model: currentModel?.id,
       config: languageModel,
     });
   }
 
   function addMessage(message: Message) {
-    setMessages((previousMessages) => [...previousMessages, message]);
-    return [...messages, message];
+    let updatedMessages: Message[] = [];
+    setMessages((previousMessages) => {
+      updatedMessages = [...previousMessages, message];
+      return updatedMessages;
+    });
+    return updatedMessages;
   }
 
   function handleSaveInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -281,7 +329,7 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
           className={`flex flex-col w-full max-h-full max-w-[800px] mx-auto px-4 overflow-auto ${fragment ? "col-span-1" : "col-span-2"}`}
         >
           <Chat
-            messages={messages}
+            messages={effectiveMessages}
             isLoading={isLoading}
             setCurrentPreview={setCurrentPreview}
           />

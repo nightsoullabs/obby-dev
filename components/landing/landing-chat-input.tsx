@@ -9,7 +9,7 @@ import { ModelSelector } from "./model-selector";
 import { cn } from "lib/utils";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { useRouter } from "next/navigation";
-import { createChatFromMessage } from "actions/createChat";
+import { createChatFromMessage } from "@/actions/createChat";
 import { AuthDialog } from "components/ai/fragments/auth-dialog";
 
 type Attachment = {

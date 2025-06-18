@@ -2,8 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/_generated/api";
-import type { Id } from "@/convex/_generated/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { UserNav } from "../layout/user-nav";
 import { useAuth } from "@workos-inc/authkit-nextjs/components";
 import { Logo } from "../logo";
@@ -48,7 +48,9 @@ export function DynamicChatHeader() {
           {chatData && (
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">/</span>
-              <h1 className="font-medium text-foreground">{chatData.title}</h1>
+              <h1 className="font-medium text-foreground text-sm tracking-tight">
+                {chatData.title}
+              </h1>
             </div>
           )}
         </div>

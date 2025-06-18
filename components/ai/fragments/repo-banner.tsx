@@ -11,7 +11,7 @@ export function RepoBanner({ className }: { className?: string }) {
       href={REPO_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={"View Fragments repository on GitHub"}
+      aria-label={"View Obby repository on GitHub"}
       className={cn(
         "bg-background overflow-hidden px-3 py-1 rounded-t-2xl",
         "gap-2 flex items-center border border-b-0",

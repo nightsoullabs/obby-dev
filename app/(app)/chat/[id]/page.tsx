@@ -1,7 +1,7 @@
 import AIClient from "components/ai/ai-client";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "@/convex/_generated/_generated/api";
-import type { Id } from "@/convex/_generated/_generated/dataModel";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { notFound } from "next/navigation";
 
 export default async function Page(props: {

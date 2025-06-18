@@ -1,5 +1,6 @@
+import { generateArrayKey } from "@/lib/utils/array-utils";
 import { Alert, AlertTitle, AlertDescription } from "components/ui/alert";
-import { ExecutionResultInterpreter } from "lib/types";
+import type { ExecutionResultInterpreter } from "lib/types";
 import { Terminal } from "lucide-react";
 import Image from "next/image";
 
@@ -17,14 +18,14 @@ function LogsOutput({
       {stdout &&
         stdout.length > 0 &&
         stdout.map((out: string, index: number) => (
-          <pre key={index} className="text-xs">
+          <pre key={generateArrayKey(index)} className="text-xs">
             {out}
           </pre>
         ))}
       {stderr &&
         stderr.length > 0 &&
         stderr.map((err: string, index: number) => (
-          <pre key={index} className="text-xs text-red-500">
+          <pre key={generateArrayKey(index)} className="text-xs text-red-500">
             {err}
           </pre>
         ))}

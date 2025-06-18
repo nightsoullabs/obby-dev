@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function Logo() {
   return (
-    <div className="flex items-center space-x-2 px-4">
+    <div className="flex items-center space-x-2 pl-4">
       <Image
         src={"/logos/obby/obby-logo-min.webp"}
         className="logo"
