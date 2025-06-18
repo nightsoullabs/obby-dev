@@ -72,7 +72,7 @@ export function AnnouncementBadge() {
                 </span>
               </div>
               <div className="px-4 py-2 text-sm text-foreground flex items-center gap-2">
-                Sign up
+                Sign ups
                 <span className="font-semibold text-emerald-500">
                   open now!
                 </span>

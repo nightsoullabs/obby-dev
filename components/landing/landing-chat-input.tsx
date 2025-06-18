@@ -313,7 +313,7 @@ export function LandingChatInput({ className }: { className?: string }) {
           <div className="relative">
             <div
               className={cn(
-                "shadow-md rounded-2xl relative z-10 bg-muted border",
+                "shadow-md rounded-2xl relative z-10 bg-accent border-2 border-accent-foreground/10",
                 dragActive &&
                   "before:absolute before:inset-0 before:rounded-2xl before:border-2 before:border-dashed before:border-primary",
               )}
@@ -343,7 +343,7 @@ export function LandingChatInput({ className }: { className?: string }) {
                 ref={textareaRef}
                 autoFocus={true}
                 rows={2}
-                className="text-normal px-3 resize-none ring-0 bg-inherit w-full m-0 outline-none border-0 focus-visible:ring-0"
+                className="text-normal px-4 resize-none ring-0 bg-inherit w-full m-0 outline-none border-0 focus-visible:ring-0"
                 required={true}
                 placeholder="Ask Obby to build..."
                 disabled={error !== ""}

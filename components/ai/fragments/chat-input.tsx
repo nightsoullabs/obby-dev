@@ -210,7 +210,7 @@ export function ChatInput({
     <form
       onSubmit={handleSubmit}
       onKeyDown={onEnter}
-      className="mb-2 mt-auto flex flex-col bg-background"
+      className="mb-2 mt-auto flex flex-col bg-transparent"
       onDragEnter={isMultiModal ? handleDrag : undefined}
       onDragLeave={isMultiModal ? handleDrag : undefined}
       onDragOver={isMultiModal ? handleDrag : undefined}
@@ -236,9 +236,9 @@ export function ChatInput({
         </div>
       )}
       <div className="relative">
-        <RepoBanner className="absolute bottom-full inset-x-2 translate-y-1 z-0 pb-2" />
+        {/* <RepoBanner className="absolute bottom-full inset-x-2 translate-y-1 z-0 pb-2" /> */}
         <div
-          className={`shadow-md rounded-2xl relative z-10 bg-background border ${
+          className={`shadow-md rounded-2xl relative z-10 bg-accent border ${
             dragActive
               ? "before:absolute before:inset-0 before:rounded-2xl before:border-2 before:border-dashed before:border-primary"
               : ""
@@ -248,7 +248,7 @@ export function ChatInput({
           <Textarea
             autoFocus={true}
             rows={2}
-            className="text-normal px-3 resize-none ring-0 bg-inherit w-full m-0 outline-none"
+            className="text-normal px-4 resize-none ring-0 bg-inherit w-full m-0 outline-none border-0 focus-visible:ring-0"
             required={true}
             placeholder="Ask Obby to build..."
             disabled={isErrored}

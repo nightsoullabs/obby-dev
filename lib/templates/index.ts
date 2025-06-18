@@ -13,7 +13,7 @@ const templates = {
     ],
     file: "pages/index.tsx",
     instructions:
-      "A Next.js 14 app with pages router, focused on creating beautiful, modern UI components using shadcn/ui. Prioritize user requirements - use basic shadcn/ui by default, add Motion for animations when requested, React Three Fiber for 3D when requested, and other libraries as needed. Include npm install commands for additional packages.",
+      "A Next.js 14 app with pages router, focused on creating beautiful, modern UI components using shadcn/ui. Prioritize user requirements - use basic shadcn/ui by default, add Motion for animations when requested, React Three Fiber for 3D when requested, and other libraries as needed. Include npm install commands for additional packages. Please make sure that port is 3000",
     port: 3000,
   },
 };

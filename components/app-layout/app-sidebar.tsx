@@ -166,6 +166,11 @@ export function AppSidebar({
       : title;
   };
 
+  // If not authenticated, render a minimal sidebar or nothing
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <TooltipProvider>
       <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]! border-none">
