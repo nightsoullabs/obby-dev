@@ -22,6 +22,7 @@ export const createChat = mutation({
       messages: args.messages,
       fileData: args.fileData,
       fragments: args.fragments,
+      isFavorite: false,
       visibility: args.visibility ?? "private", // Default visibility
     });
     return chat;
@@ -224,5 +225,86 @@ export const updateChatTitle = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { title: args.title });
     return { success: true };
+  },
+});
+
+export const getLatestChats = query({
+  args: { user_id: v.id("users") },
+  handler: async (ctx, args) => {
+    const chats = await ctx.db
+      .query("chats")
+      .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))
+      .order("desc")
+      .take(100);
+    return chats;
+  },
+});
+
+export const getFavoriteChats = query({
+  args: { user_id: v.id("users") },
+  handler: async (ctx, args) => {
+    const chats = await ctx.db
+      .query("chats")
+      .withIndex("by_user_favorite", (q) =>
+        q.eq("user_id", args.user_id).eq("isFavorite", true),
+      )
+      .order("desc")
+      .collect();
+    return chats;
+  },
+});
+
+export const getRecentChats = query({
+  args: { user_id: v.id("users") },
+  handler: async (ctx, args) => {
+    const chats = await ctx.db
+      .query("chats")
+      .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))
+      .filter((q) => q.neq(q.field("isFavorite"), true))
+      .order("desc")
+      .take(50);
+    return chats;
+  },
+});
+
+export const toggleChatFavorite = mutation({
+  args: {
+    id: v.id("chats"),
+    isFavorite: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { isFavorite: args.isFavorite });
+    return { success: true };
+  },
+});
+
+export const deleteChat = mutation({
+  args: {
+    id: v.id("chats"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return { success: true };
+  },
+});
+
+export const getAllUserChats = query({
+  args: { user_id: v.id("users") },
+  handler: async (ctx, args) => {
+    const chats = await ctx.db
+      .query("chats")
+      .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))
+      .order("desc")
+      .take(100);
+
+    // Split into favorites and recents on the server side
+    const favoriteChats = chats.filter((chat) => chat.isFavorite);
+    const recentChats = chats.filter((chat) => !chat.isFavorite).slice(0, 50);
+
+    return {
+      favoriteChats,
+      recentChats,
+      totalCount: chats.length,
+    };
   },
 });

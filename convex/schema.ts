@@ -33,10 +33,12 @@ export default defineSchema({
     fileData: v.optional(v.any()), // File attachments data
     fragments: v.optional(v.any()), // AI fragments data
     visibility: v.union(v.literal("private"), v.literal("public")),
+    isFavorite: v.optional(v.boolean()),
   })
     .index("by_user_id", ["user_id"])
     .index("by_visibility", ["visibility"])
-    .index("by_user_visibility", ["user_id", "visibility"]),
+    .index("by_user_visibility", ["user_id", "visibility"])
+    .index("by_user_favorite", ["user_id", "isFavorite"]),
 
   messages: defineTable({
     chat_id: v.id("chats"),
