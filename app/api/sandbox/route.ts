@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     userID: string | undefined;
     teamID: string | undefined;
   } = await req.json();
-  console.log("fragment", fragment);
+  // console.log("fragment", fragment);
   console.log("userID", userID);
 
   // Create an interpreter or a sandbox

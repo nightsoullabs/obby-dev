@@ -18,6 +18,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 
 import { type SetStateAction, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 interface AIClientProps {
   chatId?: Id<"chats">;
@@ -59,8 +61,12 @@ function AIClientInner({
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [isAuthDialogOpen, setAuthDialog] = useState(false);
 
-  const { effectiveMessages, addMessageWithFragment } = useChatContext();
-  const hasProcessedInitialMessage = useRef(false);
+  const { chatData, effectiveMessages, addMessageWithFragment } =
+    useChatContext();
+  const markInitialMessageProcessed = useMutation(
+    api.chats.markInitialMessageProcessed,
+  );
+  const isProcessing = useRef(false);
 
   // AI communication hook
   const {
@@ -147,25 +153,25 @@ function AIClientInner({
       chatId &&
       effectiveMessages.length === 1 &&
       effectiveMessages[0].role === "user" &&
-      !hasProcessedInitialMessage.current
+      !chatData?.initialMessageProcessed &&
+      !isProcessing.current
     ) {
       console.log("Auto-processing initial message for chat:", chatId);
-      hasProcessedInitialMessage.current = true;
+      isProcessing.current = true;
       submitMessages(effectiveMessages, userID);
+      markInitialMessageProcessed({ id: chatId }).finally(() => {
+        isProcessing.current = false;
+      });
     }
   }, [
     userID,
     isLoading,
     chatId,
-    effectiveMessages.length,
     effectiveMessages,
+    chatData?.initialMessageProcessed,
     submitMessages,
+    markInitialMessageProcessed,
   ]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Reset the processing flag when chat changes
-  useEffect(() => {
-    hasProcessedInitialMessage.current = false;
-  }, [chatId]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {

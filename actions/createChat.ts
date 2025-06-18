@@ -79,6 +79,7 @@ export async function createChatFromMessage({
       messages: [initialUserMessage], // Start with the initial user message
       fileData,
       visibility: "private",
+      initialMessageProcessed: false,
     });
 
     revalidatePath("/");

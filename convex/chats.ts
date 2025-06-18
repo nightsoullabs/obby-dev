@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
 import schema from "./schema";
 import { crud } from "convex-helpers/server/crud";
 import type { Doc } from "./_generated/dataModel";
@@ -15,6 +14,7 @@ export const createChat = mutation({
     fileData: v.optional(v.any()),
     fragments: v.optional(v.any()),
     visibility: v.optional(v.union(v.literal("private"), v.literal("public"))),
+    initialMessageProcessed: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const chat = await ctx.db.insert("chats", {
@@ -24,6 +24,7 @@ export const createChat = mutation({
       fileData: args.fileData,
       fragments: args.fragments,
       visibility: args.visibility ?? "private", // Default visibility
+      initialMessageProcessed: args.initialMessageProcessed ?? false,
     });
     return chat;
   },
@@ -199,6 +200,13 @@ export const updateChatFragments = mutation({
 
     await ctx.db.patch(args.id, { fragments: args.fragments });
     return { success: true, fragmentCount: args.fragments?.length || 0 };
+  },
+});
+
+export const markInitialMessageProcessed = mutation({
+  args: { id: v.id("chats") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { initialMessageProcessed: true });
   },
 });
 

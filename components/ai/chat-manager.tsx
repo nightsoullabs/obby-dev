@@ -20,6 +20,7 @@ interface ChatData {
   messageCount?: number;
   fragmentCount?: number;
   lastUpdated?: number;
+  initialMessageProcessed?: boolean;
 }
 
 interface ChatContextValue {
