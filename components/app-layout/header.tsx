@@ -49,7 +49,7 @@ export async function Header() {
                 <Suspense
                   fallback={<Skeleton className="size-7 rounded-full" />}
                 >
-                  <UserNav user={user} role={role} />
+                  <UserNav user={user} />
                 </Suspense>
               </>
             )}
