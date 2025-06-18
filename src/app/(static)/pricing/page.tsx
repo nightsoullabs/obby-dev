@@ -10,11 +10,14 @@ export default async function PricingPage() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12 sm:mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight mb-4 sm:mb-6">
-            Pricing
+            Pricing (Coming soon)
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-            Get started immediately for free. Upgrade for more credits, usage
-            and collaboration.
+            {/* Get started immediately for free. Upgrade for more credits, usage
+            and collaboration. */}
+            I currently have around $1990 startup credits in GCP so I have
+            access to Gemini models. Please feel free to use the gemini models,
+            until of course that gets over.
           </p>
         </div>
 

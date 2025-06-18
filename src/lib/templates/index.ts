@@ -1,23 +1,19 @@
 const templates = {
   "nextjs-developer": {
-    name: "Next.js developer",
+    name: "Next.js Modern UI Developer",
     lib: [
-      "nextjs@15.3.3",
+      "next@14.2.5",
       "typescript",
       "@types/node",
       "@types/react",
       "@types/react-dom",
       "postcss",
-      "motion",
       "tailwindcss",
       "shadcn",
-      "three",
-      "@types/three",
-      "@react-three/fiber",
     ],
     file: "pages/index.tsx",
     instructions:
-      "A Next.js 15+ app that reloads automatically. Using the pages router.",
+      "A Next.js 14 app with pages router, focused on creating beautiful, modern UI components using shadcn/ui. Prioritize user requirements - use basic shadcn/ui by default, add Motion for animations when requested, React Three Fiber for 3D when requested, and other libraries as needed. Include npm install commands for additional packages.",
     port: 3000,
   },
 };

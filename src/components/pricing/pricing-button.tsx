@@ -21,7 +21,7 @@ export function PricingButton({
   };
 
   return (
-    <Button className="w-full text-sm" variant={variant} onClick={handleClick}>
+    <Button disabled className="w-full text-sm" variant={variant} onClick={handleClick}>
       {children}
     </Button>
   );

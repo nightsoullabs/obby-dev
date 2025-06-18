@@ -44,7 +44,7 @@ export function AnnouncementBadge() {
             <div className="px-4 py-2 text-sm text-foreground flex items-center gap-2">
               New users get
               <span className="font-semibold text-emerald-500">
-                agentic use for 20 credits per day
+                10 messages a day
               </span>
             </div>
           </div>

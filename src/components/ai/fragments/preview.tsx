@@ -43,7 +43,7 @@ export function Preview({
   const isLinkAvailable = result?.template !== "code-interpreter-v1";
 
   return (
-    <div className="absolute md:relative z-10 top-0 left-0 shadow-2xl md:rounded-tl-3xl md:rounded-bl-3xl md:border-l md:border-y bg-popover h-full w-full overflow-auto">
+    <div className="absolute md:relative z-10 top-0 left-0 shadow-2xl md:rounded-tl-3xl md:border-l md:border-y bg-popover h-full w-full overflow-auto mt-2">
       <Tabs
         value={selectedTab}
         onValueChange={(value) =>

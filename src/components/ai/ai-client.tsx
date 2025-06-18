@@ -215,9 +215,9 @@ export default function AIClient() {
   }
 
   return (
-    <main className="flex min-h-screen max-h-screen">
+    <main className="h-full w-full overflow-hidden">
       <AuthDialog open={isAuthDialogOpen} setOpen={setAuthDialog} />
-      <div className="grid w-full md:grid-cols-2">
+      <div className="h-full grid w-full md:grid-cols-2">
         <div
           className={`flex flex-col w-full max-h-full max-w-[800px] mx-auto px-4 overflow-auto ${fragment ? "col-span-1" : "col-span-2"}`}
         >

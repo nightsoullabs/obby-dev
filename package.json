@@ -113,15 +113,8 @@
     "tw-animate-css": "^1.3.2",
     "typescript": "^5"
   },
-  "description": "An open source version of v0 and lovable",
-  "keywords": [
-    "nextjs",
-    "next",
-    "v0",
-    "bolt",
-    "replit",
-    "lovable"
-  ],
+  "description": "An open source alternative to v0.dev",
+  "keywords": ["nextjs", "next", "v0", "bolt", "replit", "lovable"],
   "author": "eersnington",
   "license": "MIT",
   "homepage": "https://obby.dev",

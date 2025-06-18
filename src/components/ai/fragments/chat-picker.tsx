@@ -10,7 +10,6 @@ import {
 import type { ModelInfo } from "@/lib/ai/models";
 import type { TemplateId, Templates } from "@/lib/templates";
 import "core-js/features/object/group-by.js";
-import { Sparkles } from "lucide-react";
 import Image from "next/image";
 
 export function ChatPicker({

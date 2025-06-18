@@ -10,7 +10,7 @@ const faqData = [
   {
     question: "What is Obby and how does it work?",
     answer:
-      "Obby is an AI-powered development assistant that helps you build full-stack applications, mobile apps, and websites by simply describing what you want to create. Using advanced AI models, Obby generates clean, production-ready code that you can customize and deploy immediately. Just describe your project in natural language, and Obby will create the complete application structure, components, and functionality for you.",
+      "Obby is an AI-powered development assistant that helps you build Next.js apps by simply describing what you want to create. Using advanced AI models, Obby generates clean, production-ready code that you can customize and deploy immediately. Just describe your project in natural language, and Obby will create the complete application structure, components, and functionality for you.",
   },
   {
     question: "What does the free plan include?",
