@@ -68,7 +68,6 @@ export function LandingChatInput({ className }: { className?: string }) {
     [],
   );
 
-  // Handle form submission
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -83,7 +82,6 @@ export function LandingChatInput({ className }: { className?: string }) {
       setIsSubmitting(true);
 
       try {
-        // Create empty chat and pass initial message via URL params
         const files = attachments.map((attachment) => attachment.file);
         const result = await createChatFromMessage({
           message: input,
@@ -91,12 +89,10 @@ export function LandingChatInput({ className }: { className?: string }) {
         });
 
         if (result.success && result.chatId) {
-          // Navigate to the new chat (no query params needed)
           router.push(`/chat/${result.chatId}`);
         }
       } catch (error) {
         console.error("Failed to create chat:", error);
-        // You might want to show a toast or error message here
       } finally {
         setIsSubmitting(false);
       }
@@ -106,11 +102,9 @@ export function LandingChatInput({ className }: { className?: string }) {
 
   const handlePromptRewrite = useCallback(() => {
     if (!input.trim()) return;
-    // You can implement prompt rewrite functionality here
     console.log("Rewriting prompt:", input);
   }, [input]);
 
-  // Handle keyboard shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
@@ -120,7 +114,6 @@ export function LandingChatInput({ className }: { className?: string }) {
     }
   };
 
-  // Remove attachment
   const removeAttachment = (index: number) => {
     setAttachments((prev) => {
       // Clean up URL object
