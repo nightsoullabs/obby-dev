@@ -16,16 +16,11 @@ import type { ExecutionResult } from "lib/types";
 import type { DeepPartial } from "ai";
 import type { Id } from "@/convex/_generated/dataModel";
 
-import {
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type SetStateAction, useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { generateTitleFromUserMessage } from "@/actions/generateTitle";
 
 interface AIClientProps {
   chatId?: Id<"chats">;
@@ -69,18 +64,7 @@ function AIClientInner({
 
   const { chatData, effectiveMessages, addMessageWithFragment } =
     useChatContext();
-  const markInitialMessageProcessedMutation = useMutation(
-    api.chats.markInitialMessageProcessed,
-  );
-  const isProcessing = useRef(false);
-
-  // Stable callback for marking initial message as processed
-  const markInitialMessageProcessed = useCallback(
-    (args: { id: Id<"chats"> }) => {
-      return markInitialMessageProcessedMutation(args);
-    },
-    [markInitialMessageProcessedMutation],
-  );
+  const updateChatTitleMutation = useMutation(api.chats.updateChatTitle);
 
   // AI communication hook
   const {
@@ -159,33 +143,28 @@ function AIClientInner({
     }
   }, [object]);
 
-  // Auto-process initial message if chat has exactly 1 user message and no assistant response
+  // Generate title when chat has "New Chat" as title and has messages
   useEffect(() => {
     if (
-      userID &&
-      !isLoading &&
       chatId &&
-      effectiveMessages.length === 1 &&
-      effectiveMessages[0].role === "user" &&
-      !chatData?.initialMessageProcessed &&
-      !isProcessing.current
+      chatData?.title === "New Chat" &&
+      effectiveMessages.length > 0
     ) {
-      console.log("Auto-processing initial message for chat:", chatId);
-      isProcessing.current = true;
-      submitMessages(effectiveMessages, userID);
-      markInitialMessageProcessed({ id: chatId }).finally(() => {
-        isProcessing.current = false;
-      });
+      const firstMessage = effectiveMessages[0];
+      if (firstMessage.role === "user" && firstMessage.content) {
+        const textContent = firstMessage.content.find((c) => c.type === "text");
+        if (textContent?.text) {
+          generateTitleFromUserMessage({ message: textContent.text })
+            .then((title) => {
+              updateChatTitleMutation({ id: chatId, title });
+            })
+            .catch((error) => {
+              console.error("Failed to generate title:", error);
+            });
+        }
+      }
     }
-  }, [
-    userID,
-    isLoading,
-    chatId,
-    effectiveMessages,
-    chatData?.initialMessageProcessed,
-    submitMessages,
-    markInitialMessageProcessed,
-  ]);
+  }, [chatId, chatData?.title, effectiveMessages, updateChatTitleMutation]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {

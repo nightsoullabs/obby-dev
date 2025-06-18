@@ -2,7 +2,6 @@
 
 import { api } from "@/convex/_generated/api";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
-import { generateTitleFromUserMessage } from "./generateTitle";
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -16,14 +15,12 @@ export async function createChatFromMessage({
   message: string;
   files?: File[];
 }) {
-  const { user } = await withAuth({ ensureSignedIn: true });
-
-  if (!user) {
-    throw new Error("User not authenticated");
-  }
-
   try {
-    const title = await generateTitleFromUserMessage({ message });
+    const { user } = await withAuth({ ensureSignedIn: true });
+
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
 
     const convexUser = await fetchQuery(api.users.getByWorkOSIdQuery, {
       workos_id: user.id,
@@ -50,12 +47,10 @@ export async function createChatFromMessage({
       fileData = await Promise.all(filePromises);
     }
 
-    // Create the initial user message
     const content: Array<MessageText | MessageImage> = [
       { type: "text", text: message },
     ];
 
-    // Add images if files exist
     if (fileData && fileData.length > 0) {
       for (const file of fileData) {
         if (file.type.startsWith("image/")) {
@@ -72,14 +67,13 @@ export async function createChatFromMessage({
       content,
     };
 
-    // Create chat with initial message
+    // Create chat with initial message but placeholder title
     const chatId = await fetchMutation(api.chats.createChat, {
       user_id: convexUser._id,
-      title,
+      title: "New Chat", // Placeholder title, will be updated client-side
       messages: [initialUserMessage], // Start with the initial user message
       fileData,
       visibility: "private",
-      initialMessageProcessed: true, // Mark as processed since user manually submitted from landing page
     });
 
     revalidatePath("/");
@@ -87,7 +81,7 @@ export async function createChatFromMessage({
     return { chatId, success: true };
   } catch (error) {
     console.error("Error creating chat:", error);
-    throw new Error("Failed to create chat");
+    return { success: false, error: "Failed to create chat" };
   }
 }
 

@@ -14,7 +14,6 @@ export const createChat = mutation({
     fileData: v.optional(v.any()),
     fragments: v.optional(v.any()),
     visibility: v.optional(v.union(v.literal("private"), v.literal("public"))),
-    initialMessageProcessed: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const chat = await ctx.db.insert("chats", {
@@ -24,7 +23,6 @@ export const createChat = mutation({
       fileData: args.fileData,
       fragments: args.fragments,
       visibility: args.visibility ?? "private", // Default visibility
-      initialMessageProcessed: args.initialMessageProcessed ?? false,
     });
     return chat;
   },
@@ -203,13 +201,6 @@ export const updateChatFragments = mutation({
   },
 });
 
-export const markInitialMessageProcessed = mutation({
-  args: { id: v.id("chats") },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { initialMessageProcessed: true });
-  },
-});
-
 // Validation query for chat access
 export const validateChatAccess = query({
   args: {
@@ -222,5 +213,16 @@ export const validateChatAccess = query({
     if (chat.user_id !== args.userId)
       return { valid: false, reason: "unauthorized" };
     return { valid: true, chat };
+  },
+});
+
+export const updateChatTitle = mutation({
+  args: {
+    id: v.id("chats"),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { title: args.title });
+    return { success: true };
   },
 });
