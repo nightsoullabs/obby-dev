@@ -56,7 +56,7 @@ export function AnnouncementBadge() {
           variant="outline"
           className="rounded-full h-auto p-0 overflow-hidden border-0 bg-transparent hover:bg-accent"
         >
-          <Link href={"https://cloneathon.t3.chat/"} target="_blank">
+          <Link href={"/login"}>
             <div className="flex items-center">
               {/* New badge with animated gradient border */}
               <div className="relative inline-flex overflow-hidden rounded-full p-[1px]">
@@ -68,13 +68,13 @@ export function AnnouncementBadge() {
                   }}
                 />
                 <span className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-accent px-3 py-1 text-xs font-medium text-foreground backdrop-blur-3xl">
-                  WIP
+                  New
                 </span>
               </div>
               <div className="px-4 py-2 text-sm text-foreground flex items-center gap-2">
-                Participating in t3 cloneathon
+                Sign up
                 <span className="font-semibold text-emerald-500">
-                  Signups opening soon
+                  open now!
                 </span>
                 <ChevronRight className="h-4 w-4" />
               </div>
