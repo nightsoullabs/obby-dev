@@ -24,10 +24,16 @@ import {
   indentOnInput,
   indentUnit,
 } from "@codemirror/language";
-import { drawSelection, dropCursor, scrollPastEnd } from "@codemirror/view";
+import { dropCursor, scrollPastEnd } from "@codemirror/view";
 import { PrettierWrapper } from "./prettier-plugin";
-
 import { useTheme } from "next-themes";
+import {
+  ADDITIONAL_DEPENDENCIES,
+  BASE_DEPENDENCIES,
+  DEV_DEPENDENCIES,
+} from "@/lib/templates/react/dependencies";
+import { defaultFiles } from "@/lib/templates/react/files";
+import { rewriteSandpackAliases } from "@/lib/utils/rewrite-path";
 
 /*
 TODO: 
@@ -38,10 +44,9 @@ Few issues to solve:
 
 export function CodePanel() {
   const [activeTab, setActiveTab] = useState("code");
+  const [mounted, setMounted] = useState(false);
 
   const { resolvedTheme } = useTheme();
-
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -51,17 +56,38 @@ export function CodePanel() {
     return null; // Prevents hydration mismatch
   }
 
+  const sandpackFiles = {
+    ...rewriteSandpackAliases(defaultFiles),
+  };
+
   return (
     <div className="h-full w-full flex flex-col overflow-clip border border-accent rounded-lg pt-2 bg-accent/30">
       <SandpackProvider
-        // files={initialFiles}
+        className="w-full h-full"
         theme={resolvedTheme === "dark" ? atomDark : aquaBlue}
-        template="vite-react-ts"
-        // customSetup={{
-        //   dependencies: repoDependencies.dependencies,
-        //   devDependencies: repoDependencies.devDependencies,
-        // }}
-        // files={repoFiles}
+        files={sandpackFiles}
+        customSetup={{
+          entry: "/src/main.tsx",
+          dependencies: {
+            ...BASE_DEPENDENCIES,
+            ...ADDITIONAL_DEPENDENCIES,
+          },
+          devDependencies: {
+            ...DEV_DEPENDENCIES,
+          },
+        }}
+        options={{
+          externalResources: [
+            "https://unpkg.com/@tailwindcss/ui/dist/tailwind-ui.min.css",
+          ],
+          classes: {
+            "sp-tabs": "background-color:bg-[#fff];",
+          },
+          recompileMode: "immediate",
+          recompileDelay: 0,
+          autorun: true,
+          autoReload: true,
+        }}
       >
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent flex justify-between items-center px-2">
@@ -79,7 +105,15 @@ export function CodePanel() {
                 borderRadius: "0 0 0.5rem 0.5rem",
               }}
             >
-              <SandpackFileExplorer style={{ height: "80vh" }} />
+              <SandpackFileExplorer
+                initialCollapsedFolder={[
+                  "/src/components/",
+                  "/src/components/ui/",
+                  "/src/hooks/",
+                  "/src/lib/",
+                  "/src/pages/",
+                ]}
+              />
 
               <PrettierWrapper>
                 <SandpackCodeEditor
@@ -99,7 +133,6 @@ export function CodePanel() {
                     closeBrackets(),
                     scrollPastEnd(),
                     dropCursor(),
-                    drawSelection(),
                     bracketMatching(),
                     indentOnInput(),
                   ]}

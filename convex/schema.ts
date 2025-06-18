@@ -26,9 +26,9 @@ export default defineSchema({
     .index("by_user_id", ["user_id"])
     .index("by_organization_id", ["organization_id"])
     .index("by_name", ["name"]),
-
   chats: defineTable({
     user_id: v.id("users"),
+    title: v.string(),
     messages: v.any(), // JSON structure for messages
     fileData: v.optional(v.any()), // I'm not sure about the type here, adjust as needed
     visibility: v.union(v.literal("private"), v.literal("public")),
@@ -36,4 +36,11 @@ export default defineSchema({
     .index("by_user_id", ["user_id"])
     .index("by_visibility", ["visibility"])
     .index("by_user_visibility", ["user_id", "visibility"]),
+
+  messages: defineTable({
+    chat_id: v.id("chats"),
+    role: v.string(),
+    parts: v.array(v.string()),
+  })
+    .index("by_chat_id", ["chat_id"])
 });

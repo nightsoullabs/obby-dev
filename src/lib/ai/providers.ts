@@ -14,7 +14,7 @@ import { validateModelIdFormat } from "./models";
 export const obbylabs = customProvider({
   languageModels: {
     "agent-chat": originalGoogle("gemini-2.5-pro-preview-06-05"),
-    "fast-chat": originalGoogle("gemini-2.5-flash-preview-05-20"),
+    "fast-chat": originalGoogle("gemini-2.5-flash"),
   },
 });
 
@@ -45,7 +45,7 @@ export const anthropic = customProvider({
 export const google = customProvider({
   languageModels: {
     "gemini-2.5-pro": originalGoogle("gemini-2.5-pro-preview-06-05"),
-    "gemini-2.5-flash": originalGoogle("gemini-2.5-flash-preview-05-20"),
+    "gemini-2.5-flash": originalGoogle("gemini-2.5-flash"), // stable
     "gemini-2.0-flash": originalGoogle("gemini-2.0-flash-001"), // 001 is stable version
   },
   fallbackProvider: originalGoogle,

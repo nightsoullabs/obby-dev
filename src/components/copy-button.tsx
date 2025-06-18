@@ -15,7 +15,7 @@ export default function CopyButton({
   children,
   copyValue,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   copyValue: string;
 }) {
   const [copied, setCopied] = useState(false);

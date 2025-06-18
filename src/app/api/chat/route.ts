@@ -1,66 +1,132 @@
-import { type CoreMessage, streamText } from "ai";
-import dedent from "dedent";
-import { z } from "zod";
+import type { Duration } from "@/lib/utils/duration";
+import { toPrompt } from "@/lib/ai/prompt";
+import ratelimit from "@/lib/ratelimit";
+import { fragmentSchema as schema } from "@/lib/fragment";
+import { streamObject, type CoreMessage } from "ai";
 import { getModelFromRegistry } from "@/lib/ai/providers";
-import { validateModelIdFormat } from "@/lib/ai/models";
-import { SYSTEM_PROMPT } from "@/lib/ai/prompt";
+import type { ModelInfo } from "@/lib/ai/models";
+import templates from "@/lib/templates";
+import type { GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 
-export const maxDuration = 90;
+export const maxDuration = 60;
+
+const rateLimitMaxRequests = process.env.RATE_LIMIT_MAX_REQUESTS
+  ? Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS)
+  : 10;
+const ratelimitWindow = process.env.RATE_LIMIT_WINDOW
+  ? (process.env.RATE_LIMIT_WINDOW as Duration)
+  : "1d";
 
 export async function POST(req: Request) {
-  const json = await req.json();
-  const result = z
-    .object({
-      model: z.string(),
-      messages: z.array(
-        z.object({
-          role: z.enum(["user", "assistant"]),
-          content: z.string(),
-        }),
-      ),
-    })
-    .safeParse(json);
+  const {
+    messages,
+    userID,
+    teamID,
+    model,
+    config,
+  }: {
+    messages: CoreMessage[];
+    userID: string | undefined;
+    teamID: string | undefined;
+    model: string;
+    config: ModelInfo & {
+      apiKey?: string;
+    };
+  } = await req.json();
 
-  if (result.error) {
-    return new Response(result.error.message, { status: 422 });
+  const llmModel = getModelFromRegistry(model);
+
+  const limit = !config.apiKey
+    ? await ratelimit(
+        req.headers.get("x-forwarded-for"),
+        rateLimitMaxRequests,
+        ratelimitWindow,
+      )
+    : false;
+
+  if (limit) {
+    return new Response("You have reached your request limit for the day.", {
+      status: 429,
+      headers: {
+        "X-RateLimit-Limit": limit.amount.toString(),
+        "X-RateLimit-Remaining": limit.remaining.toString(),
+        "X-RateLimit-Reset": limit.reset.toString(),
+      },
+    });
   }
 
-  const { model: requestedModel, messages } = result.data;
+  console.log("userID", userID);
+  console.log("teamID", teamID);
+  console.log("model", model);
+  // console.log('config', config)
 
-  const validation = validateModelIdFormat(requestedModel);
-
-  if (!validation.isValid) {
-    return new Response(`Invalid model: ${requestedModel}`, { status: 400 });
-  }
+  const { apiKey: modelApiKey, ...modelParams } = config;
 
   try {
-    const model = getModelFromRegistry(requestedModel);
-    const systemPrompt = getSystemPrompt();
-
-    const augmentedMessages = [
-      {
-        role: "system",
-        content: `${systemPrompt}\n\nPlease ONLY return code, NO backticks or language names. Don't start with \`\`\`typescript or \`\`\`javascript or \`\`\`tsx or \`\`\`.`,
+    const stream = streamObject({
+      model: llmModel,
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 500,
+          },
+        } satisfies GoogleGenerativeAIProviderOptions,
       },
-      ...messages,
-    ];
-
-    const ret = await streamText({
-      model,
-      messages: augmentedMessages as CoreMessage[],
+      schema,
+      system: toPrompt(templates),
+      messages,
+      maxRetries: 0, // do not retry on errors
+      ...modelParams,
+      onFinish({ usage, response }) {
+        console.log("Response", response);
+        console.log("Token usage:", usage);
+      },
     });
 
-    return ret.toTextStreamResponse();
-  } catch (error) {
-    console.error("Error generating response:", error);
+    return stream.toTextStreamResponse();
+    // biome-ignore lint/suspicious/noExplicitAny: TODO: add better types
+  } catch (error: any) {
+    const isRateLimitError =
+      error && (error.statusCode === 429 || error.message.includes("limit"));
+    const isOverloadedError =
+      error && (error.statusCode === 529 || error.statusCode === 503);
+    const isAccessDeniedError =
+      error && (error.statusCode === 403 || error.statusCode === 401);
+
+    if (isRateLimitError) {
+      return new Response(
+        "The provider is currently unavailable due to request limit. Try using your own API key.",
+        {
+          status: 429,
+        },
+      );
+    }
+
+    if (isOverloadedError) {
+      return new Response(
+        "The provider is currently unavailable. Please try again later.",
+        {
+          status: 529,
+        },
+      );
+    }
+
+    if (isAccessDeniedError) {
+      return new Response(
+        "Access denied. Please make sure your API key is valid.",
+        {
+          status: 403,
+        },
+      );
+    }
+
+    console.error("Error:", error);
+
     return new Response(
-      `Failed to generate response with model: ${requestedModel}`,
-      { status: 500 },
+      "An unexpected error has occurred. Please try again later.",
+      {
+        status: 500,
+      },
     );
   }
-}
-
-function getSystemPrompt() {
-  // TODO: When I add LLMS.txt, I need to update this function to dynamically add it to the context
-  return dedent(SYSTEM_PROMPT);
 }
