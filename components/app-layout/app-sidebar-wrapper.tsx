@@ -1,17 +1,39 @@
-"use client";
-
 import { AppSidebar } from "./app-sidebar";
-import { useAuth } from "@workos-inc/authkit-nextjs/components";
-import { useQuery } from "convex/react";
+import { withAuth } from "@workos-inc/authkit-nextjs";
+import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
-export default function AppSidebarWrapper() {
-  const { user } = useAuth();
+export default async function AppSidebarWrapper() {
+  try {
+    const { user } = await withAuth();
 
-  const convexUser = useQuery(
-    api.users.getByWorkOSIdQuery,
-    user ? { workos_id: user.id } : "skip",
-  );
+    if (!user) {
+      return <AppSidebar isAuthenticated={false} />;
+    }
 
-  return <AppSidebar userId={convexUser?._id} isAuthenticated={!!user} />;
+    const convexUser = await fetchQuery(api.users.getByWorkOSIdQuery, {
+      workos_id: user.id,
+    });
+
+    if (!convexUser) {
+      return <AppSidebar isAuthenticated={false} />;
+    }
+
+    // Pre-fetch only recent chats on the server
+    const recentChats = await fetchQuery(api.chats.getRecentChats, {
+      user_id: convexUser._id,
+    });
+
+    return (
+      <AppSidebar
+        userId={convexUser._id as Id<"users">}
+        isAuthenticated={true}
+        initialRecentChats={recentChats}
+      />
+    );
+  } catch (error) {
+    console.error("Error loading sidebar:", error);
+    return <AppSidebar isAuthenticated={false} />;
+  }
 }

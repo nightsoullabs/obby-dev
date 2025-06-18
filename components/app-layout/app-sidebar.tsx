@@ -36,17 +36,20 @@ import {
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface AppSidebarProps {
   userId?: Id<"users"> | null;
   isAuthenticated?: boolean;
+  initialRecentChats?: Doc<"chats">[];
 }
 
 export function AppSidebar({
   userId,
   isAuthenticated = false,
+  initialRecentChats = [],
 }: AppSidebarProps) {
   const [optimisticDeletes, setOptimisticDeletes] = useState<Set<Id<"chats">>>(
     new Set(),
@@ -55,28 +58,63 @@ export function AppSidebar({
     Map<Id<"chats">, boolean>
   >(new Map());
 
-  // Single optimized query to get all user chats
-  const allUserChats = useQuery(
-    api.chats.getAllUserChats,
+  const favoriteChatsQuery = useQuery(
+    api.chats.getFavoriteChats,
     isAuthenticated && userId ? { user_id: userId } : "skip",
   );
 
-  // Apply optimistic updates to the data
-  const processedChats = [
-    ...(allUserChats?.favoriteChats || []),
-    ...(allUserChats?.recentChats || []),
-  ]
+  // Process recent chats with optimistic updates (from server-side data)
+  const recentChats = initialRecentChats
     .filter((chat) => !optimisticDeletes.has(chat._id))
     .map((chat) => ({
       ...chat,
       isFavorite: optimisticFavorites.has(chat._id)
         ? (optimisticFavorites.get(chat._id) ?? chat.isFavorite)
         : chat.isFavorite,
-    }));
+    }))
+    .filter((chat) => !chat.isFavorite); // Remove items that became favorites
 
-  // Split into favorites and recents based on optimistic state
-  const favoriteChats = processedChats.filter((chat) => chat.isFavorite);
-  const recentChats = processedChats.filter((chat) => !chat.isFavorite);
+  // Process favorite chats with optimistic updates (from client-side data)
+  const favoriteChats = (favoriteChatsQuery || [])
+    .filter((chat) => !optimisticDeletes.has(chat._id))
+    .map((chat) => ({
+      ...chat,
+      isFavorite: optimisticFavorites.has(chat._id)
+        ? (optimisticFavorites.get(chat._id) ?? chat.isFavorite)
+        : chat.isFavorite,
+    }))
+    .filter((chat) => chat.isFavorite); // Remove items that became non-favorites
+
+  // Add optimistically favorited items from recent chats
+  const optimisticallyFavoritedFromRecents = initialRecentChats
+    .filter(
+      (chat) =>
+        optimisticFavorites.has(chat._id) &&
+        optimisticFavorites.get(chat._id) === true &&
+        !chat.isFavorite,
+    )
+    .map((chat) => ({ ...chat, isFavorite: true }));
+
+  // Add optimistically unfavorited items to recent chats
+  const optimisticallyUnfavoritedToRecents = (favoriteChatsQuery || [])
+    .filter(
+      (chat) =>
+        optimisticFavorites.has(chat._id) &&
+        optimisticFavorites.get(chat._id) === false &&
+        chat.isFavorite,
+    )
+    .map((chat) => ({ ...chat, isFavorite: false }));
+
+  // Final arrays with optimistic updates
+  const finalFavoriteChats = [
+    ...favoriteChats,
+    ...optimisticallyFavoritedFromRecents,
+  ];
+
+  const finalRecentChats = [
+    ...recentChats,
+    ...optimisticallyUnfavoritedToRecents,
+  ];
 
   const toggleFavorite = useMutation(api.chats.toggleChatFavorite);
   const deleteChat = useMutation(api.chats.deleteChat);
@@ -133,6 +171,9 @@ export function AppSidebar({
       <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]! border-none">
         <SidebarHeader className="p-4 bg-background">
           <Button
+            onClick={() => {
+              toast("You're already in the home page");
+            }}
             variant="outline"
             className="h-9 w-full justify-center bg-background/50 border-border/50 hover:bg-accent/50"
           >
@@ -142,6 +183,7 @@ export function AppSidebar({
 
           {/* History Navigation */}
           <Link
+            prefetch={isAuthenticated}
             href="/history"
             className="h-9 w-full flex items-center gap-2 text-sm font-medium text-muted-foreground
               hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 rounded-md px-2"
@@ -166,19 +208,19 @@ export function AppSidebar({
 
         <SidebarContent className="pl-2 pr-4 bg-background">
           {/* Favorite Chats */}
-          <Collapsible defaultOpen className="group/collapsible">
+          <Collapsible className="group/collapsible">
             <SidebarGroup>
               <SidebarGroupLabel asChild>
                 <CollapsibleTrigger>
                   Favorite Chats
-                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:-rotate-90" />
+                  <ChevronDown className="ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90 group-data-[state-open]/collapsible:-rotate-180" />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {favoriteChats && favoriteChats.length > 0 ? (
-                      favoriteChats.map((chat) => (
+                    {finalFavoriteChats && finalFavoriteChats.length > 0 ? (
+                      finalFavoriteChats.map((chat) => (
                         <SidebarMenuItem key={chat._id} className="group/item">
                           <div className="flex items-center w-full h-8 px-2 text-sm hover:bg-accent dark:hover:bg-accent/50 rounded-md overflow-hidden">
                             <Link
@@ -234,14 +276,14 @@ export function AppSidebar({
               <SidebarGroupLabel asChild>
                 <CollapsibleTrigger>
                   Recent Chats
-                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:-rotate-90" />
+                  <ChevronDown className="ml-auto transition-transform group-data-[state=closed]/collapsible:-rotate-90 group-data-[state-open]/collapsible:-rotate-180" />
                 </CollapsibleTrigger>
               </SidebarGroupLabel>
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {recentChats && recentChats.length > 0 ? (
-                      recentChats.map((chat) => (
+                    {finalRecentChats && finalRecentChats.length > 0 ? (
+                      finalRecentChats.map((chat) => (
                         <SidebarMenuItem key={chat._id} className="group/item">
                           <div className="flex items-center w-full h-8 px-2 text-sm hover:bg-accent dark:hover:bg-accent/50 rounded-md overflow-hidden">
                             <Link
