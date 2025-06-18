@@ -16,7 +16,13 @@ import type { ExecutionResult } from "lib/types";
 import type { DeepPartial } from "ai";
 import type { Id } from "@/convex/_generated/dataModel";
 
-import { type SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -63,10 +69,18 @@ function AIClientInner({
 
   const { chatData, effectiveMessages, addMessageWithFragment } =
     useChatContext();
-  const markInitialMessageProcessed = useMutation(
+  const markInitialMessageProcessedMutation = useMutation(
     api.chats.markInitialMessageProcessed,
   );
   const isProcessing = useRef(false);
+
+  // Stable callback for marking initial message as processed
+  const markInitialMessageProcessed = useCallback(
+    (args: { id: Id<"chats"> }) => {
+      return markInitialMessageProcessedMutation(args);
+    },
+    [markInitialMessageProcessedMutation],
+  );
 
   // AI communication hook
   const {

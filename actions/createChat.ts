@@ -79,7 +79,7 @@ export async function createChatFromMessage({
       messages: [initialUserMessage], // Start with the initial user message
       fileData,
       visibility: "private",
-      initialMessageProcessed: false,
+      initialMessageProcessed: true, // Mark as processed since user manually submitted from landing page
     });
 
     revalidatePath("/");

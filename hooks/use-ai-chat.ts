@@ -6,9 +6,7 @@ import { fragmentSchema as schema } from "lib/fragment";
 import { AI_MODELS, type ModelInfo } from "lib/ai/models";
 import type { DeepPartial } from "ai";
 import type { FragmentSchema } from "lib/fragment";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useAuth } from "@workos-inc/authkit-nextjs/components";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useState, useCallback } from "react";
 
 interface UseAIChatProps {
   languageModel: ModelInfo;
@@ -72,7 +70,6 @@ export function useAIChat({
     },
     [submitMessages],
   );
-
 
   return {
     // AI state
