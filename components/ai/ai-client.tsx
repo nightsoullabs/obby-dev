@@ -6,22 +6,18 @@ import { ChatInput } from "./fragments/chat-input";
 import { ChatPicker } from "./fragments/chat-picker";
 import { ChatSettings } from "./fragments/chat-settings";
 import { Preview } from "./fragments/preview";
-import { useAuth } from "@workos-inc/authkit-nextjs/components";
-import { type Message, toAISDKMessages, toMessageImage } from "lib/ai/messages";
+import { ChatManager, useChatContext } from "./chat-manager";
+import { useAIChat } from "hooks/use-ai-chat";
+import { type Message, toMessageImage } from "lib/ai/messages";
 import { AI_MODELS, type ModelInfo } from "lib/ai/models";
-import { type FragmentSchema, fragmentSchema as schema } from "lib/fragment";
+import type { FragmentSchema } from "lib/fragment";
 import templates, { type TemplateId } from "lib/templates";
 import type { ExecutionResult } from "lib/types";
 import type { DeepPartial } from "ai";
-import { experimental_useObject as useObject } from "@ai-sdk/react";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 
-// import { usePostHog } from "posthog-js/react";
-import { type SetStateAction, useEffect, useState } from "react";
+import { type SetStateAction, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
-import { toast } from "sonner";
 
 interface AIClientProps {
   chatId?: Id<"chats">;
@@ -35,9 +31,16 @@ interface AIClientProps {
     fragments?: DeepPartial<FragmentSchema>[];
     visibility: "private" | "public";
   };
+  userID: string;
 }
 
-export default function AIClient({ chatId, initialChatData }: AIClientProps) {
+function AIClientInner({
+  chatId,
+  userID,
+}: {
+  chatId?: Id<"chats">;
+  userID: string;
+}) {
   const [chatInput, setChatInput] = useLocalStorage("chat", "");
   const [files, setFiles] = useState<File[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<"auto" | TemplateId>(
@@ -50,155 +53,84 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
     },
   );
 
-  //   const posthog = usePostHog();
-
   const [result, setResult] = useState<ExecutionResult>();
-  const [messages, setMessages] = useState<Message[]>([]);
   const [fragment, setFragment] = useState<DeepPartial<FragmentSchema>>();
   const [currentTab, setCurrentTab] = useState<"code" | "fragment">("code");
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [isAuthDialogOpen, setAuthDialog] = useState(false);
-  const [isRateLimited, setIsRateLimited] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const { user, loading } = useAuth();
 
-  // Convex mutations for chat persistence
-  const updateChatMessages = useMutation(api.chats.addMessageToChat);
-  const addMessageWithFragment = useMutation(api.chats.addMessageWithFragment);
+  const { effectiveMessages, addMessageWithFragment } = useChatContext();
+  const hasProcessedInitialMessage = useRef(false);
 
-  // Real-time chat data from Convex
-  const chatData = useQuery(
-    api.chats.watchChat,
-    chatId ? { id: chatId } : "skip",
-  );
+  // AI communication hook
+  const {
+    object,
+    isLoading,
+    error,
+    isRateLimited,
+    errorMessage,
+    submitMessages,
+    retry,
+    stop,
+    currentModel,
+  } = useAIChat({
+    languageModel,
+    onFragmentGenerated: async (fragment) => {
+      console.log("fragment", fragment);
+      setIsPreviewLoading(true);
 
-  const currentModel = AI_MODELS.find((model) => model.id === languageModel.id);
+      // Create assistant message with fragment
+      const assistantMessage: Message = {
+        role: "assistant" as const,
+        content: [
+          { type: "text" as const, text: fragment.commentary || "" },
+          { type: "code" as const, text: fragment.code || "" },
+        ],
+        object: fragment,
+      };
 
-  // Use real-time data from Convex, fallback to initial data and local state
-  const effectiveMessages: Message[] =
-    (chatData?.messages as Message[]) || initialChatData?.messages || messages;
-  const lastMessage = effectiveMessages[effectiveMessages.length - 1];
-
-  const { object, submit, isLoading, stop, error } = useObject({
-    api: "/api/chat",
-    schema,
-    onError: (error) => {
-      console.error("Error submitting request:", error);
-      if (error.message.includes("limit")) {
-        setIsRateLimited(true);
+      // Save message and fragment to database atomically
+      if (chatId) {
+        try {
+          await addMessageWithFragment(assistantMessage, fragment);
+        } catch (error) {
+          console.error("Failed to save message with fragment:", error);
+        }
       }
 
-      setErrorMessage(error.message);
-    },
-    onFinish: async ({ object: fragment, error }) => {
-      if (!error && fragment) {
-        console.log("fragment", fragment);
-        setIsPreviewLoading(true);
+      // Continue with sandbox creation
+      try {
+        const response = await fetch("/api/sandbox", {
+          method: "POST",
+          body: JSON.stringify({
+            fragment,
+            userID: userID,
+          }),
+        });
 
-        // Create assistant message with fragment
-        const assistantMessage: Message = {
-          role: "assistant" as const,
-          content: [
-            { type: "text" as const, text: fragment.commentary || "" },
-            { type: "code" as const, text: fragment.code || "" },
-          ],
-          object: fragment,
-        };
-
-        // Save message and fragment to database atomically
-        if (chatId) {
-          try {
-            await addMessageWithFragment({
-              id: chatId,
-              message: assistantMessage,
-              fragment: fragment,
-            });
-          } catch (error) {
-            console.error("Failed to save message with fragment:", error);
-          }
-        } else {
-          // Fallback to local state if no chatId
-          addMessage(assistantMessage);
-        }
-
-        // Continue with sandbox creation
-        try {
-          const response = await fetch("/api/sandbox", {
-            method: "POST",
-            body: JSON.stringify({
-              fragment,
-              userID: user?.id,
-            }),
-          });
-
-          if (!response.ok) {
-            console.error("Sandbox creation failed:", response.status);
-            setCurrentPreview({ fragment, result: undefined });
-            setCurrentTab("fragment");
-            setIsPreviewLoading(false);
-            return;
-          }
-
-          const result = await response.json();
-          console.log("result", result);
-
-          setResult(result);
-          setCurrentPreview({ fragment, result });
-          setCurrentTab("fragment");
-          setIsPreviewLoading(false);
-        } catch (error) {
-          console.error("Error creating sandbox:", error);
+        if (!response.ok) {
+          console.error("Sandbox creation failed:", response.status);
           setCurrentPreview({ fragment, result: undefined });
           setCurrentTab("fragment");
           setIsPreviewLoading(false);
+          return;
         }
+
+        const result = await response.json();
+        console.log("result", result);
+
+        setResult(result);
+        setCurrentPreview({ fragment, result });
+        setCurrentTab("fragment");
+        setIsPreviewLoading(false);
+      } catch (error) {
+        console.error("Error creating sandbox:", error);
+        setCurrentPreview({ fragment, result: undefined });
+        setCurrentTab("fragment");
+        setIsPreviewLoading(false);
       }
     },
   });
-
-  // Initialize chat with existing data
-  useEffect(() => {
-    if (initialChatData?.messages) {
-      setMessages(initialChatData.messages);
-
-      // Set the latest fragment if it exists
-      if (initialChatData.fragments && initialChatData.fragments.length > 0) {
-        const latestFragment =
-          initialChatData.fragments[initialChatData.fragments.length - 1];
-        setFragment(latestFragment);
-        setCurrentTab("fragment");
-      }
-    }
-  }, [initialChatData]);
-
-  // Auto-submit for new chats with only a user message (from landing page)
-  useEffect(() => {
-    if (
-      user &&
-      !isLoading &&
-      chatId &&
-      effectiveMessages.length === 1 &&
-      effectiveMessages[0].role === "user" &&
-      currentModel?.id
-    ) {
-      console.log("Auto-submitting initial message for new chat");
-      submit({
-        userID: user.id,
-        teamID: "none",
-        messages: toAISDKMessages(effectiveMessages),
-        model: currentModel.id,
-        config: languageModel,
-      });
-    }
-  }, [
-    user,
-    isLoading,
-    chatId,
-    effectiveMessages,
-    currentModel,
-    languageModel,
-    submit,
-  ]);
 
   // Update local fragment state when object changes (for UI display)
   useEffect(() => {
@@ -207,27 +139,43 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
     }
   }, [object]);
 
+  // Auto-process initial message if chat has exactly 1 user message and no assistant response
+  useEffect(() => {
+    if (
+      userID &&
+      !isLoading &&
+      chatId &&
+      effectiveMessages.length === 1 &&
+      effectiveMessages[0].role === "user" &&
+      !hasProcessedInitialMessage.current
+    ) {
+      console.log("Auto-processing initial message for chat:", chatId);
+      hasProcessedInitialMessage.current = true;
+      submitMessages(effectiveMessages, userID);
+    }
+  }, [
+    userID,
+    isLoading,
+    chatId,
+    effectiveMessages.length,
+    effectiveMessages,
+    submitMessages,
+  ]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Reset the processing flag when chat changes
+  useEffect(() => {
+    hasProcessedInitialMessage.current = false;
+  }, [chatId]);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {
     if (error) stop();
   }, [error]);
 
-  function setMessage(message: Partial<Message>, index?: number) {
-    setMessages((previousMessages) => {
-      const updatedMessages = [...previousMessages];
-      updatedMessages[index ?? previousMessages.length - 1] = {
-        ...previousMessages[index ?? previousMessages.length - 1],
-        ...message,
-      };
-
-      return updatedMessages;
-    });
-  }
-
   async function handleSubmitAuth(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!user || loading) {
+    if (!userID) {
       return setAuthDialog(true);
     }
 
@@ -249,56 +197,30 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
       content,
     };
 
-    // Optimistic update for immediate UI feedback
-    const updatedMessages = addMessage(newUserMessage);
-
     // Save user message to database if we have a chatId
     if (chatId) {
       try {
-        await addMessageWithFragment({
-          id: chatId,
-          message: newUserMessage,
-        });
+        await addMessageWithFragment(newUserMessage);
       } catch (error) {
         console.error("Failed to save user message:", error);
       }
     }
 
-    submit({
-      userID: user.id,
-      teamID: "none",
-      messages: toAISDKMessages(updatedMessages),
-      model: currentModel?.id,
-      config: languageModel,
-    });
+    // Submit to AI
+    const updatedMessages = [...effectiveMessages, newUserMessage];
+    if (userID) {
+      submitMessages(updatedMessages, userID);
+    }
 
     setChatInput("");
     setFiles([]);
     setCurrentTab("code");
-
-    // posthog.capture("chat_submit", {
-    //   template: selectedTemplate,
-    //   model: languageModel.model,
-    // });
   }
 
-  function retry() {
-    submit({
-      userID: user?.id,
-      teamID: "none",
-      messages: toAISDKMessages(effectiveMessages),
-      model: currentModel?.id,
-      config: languageModel,
-    });
-  }
-
-  function addMessage(message: Message) {
-    let updatedMessages: Message[] = [];
-    setMessages((previousMessages) => {
-      updatedMessages = [...previousMessages, message];
-      return updatedMessages;
-    });
-    return updatedMessages;
+  function handleRetry() {
+    if (userID) {
+      retry(effectiveMessages, userID);
+    }
   }
 
   function handleSaveInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -334,7 +256,7 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
             setCurrentPreview={setCurrentPreview}
           />
           <ChatInput
-            retry={retry}
+            retry={handleRetry}
             isErrored={error !== undefined}
             errorMessage={errorMessage}
             isLoading={isLoading}
@@ -377,5 +299,17 @@ export default function AIClient({ chatId, initialChatData }: AIClientProps) {
         />
       </div>
     </>
+  );
+}
+
+export default function AIClient({
+  chatId,
+  initialChatData,
+  userID,
+}: AIClientProps) {
+  return (
+    <ChatManager chatId={chatId} initialChatData={initialChatData}>
+      <AIClientInner chatId={chatId} userID={userID} />
+    </ChatManager>
   );
 }

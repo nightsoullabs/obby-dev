@@ -6,8 +6,8 @@ import {
   ResizableHandle,
 } from "components/ui/resizable";
 
-import { ChatPanel } from "./chat/chat-panel";
-import { CodePanel } from "./editor/code-panel";
+import { ChatPanel } from "../chat/chat-panel";
+import { CodePanel } from "./code-panel";
 
 export function EditorClient() {
   return (

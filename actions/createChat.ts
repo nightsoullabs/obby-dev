@@ -7,7 +7,7 @@ import { withAuth } from "@workos-inc/authkit-nextjs";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { MessageText, MessageImage } from "lib/ai/messages";
+import type { MessageText, MessageImage, Message } from "lib/ai/messages";
 
 export async function createChatFromMessage({
   message,
@@ -33,14 +33,6 @@ export async function createChatFromMessage({
       throw new Error("User not found in database");
     }
 
-    // Prepare initial message data
-    const initialMessage = {
-      role: "user" as const,
-      content: [{ type: "text" as const, text: message }] as Array<
-        MessageText | MessageImage
-      >,
-    };
-
     // Handle file attachments if present
     let fileData = undefined;
     if (files && files.length > 0) {
@@ -56,24 +48,35 @@ export async function createChatFromMessage({
         };
       });
       fileData = await Promise.all(filePromises);
+    }
 
-      // Add image content to message if images are present
-      for (const file of files) {
+    // Create the initial user message
+    const content: Array<MessageText | MessageImage> = [
+      { type: "text", text: message },
+    ];
+
+    // Add images if files exist
+    if (fileData && fileData.length > 0) {
+      for (const file of fileData) {
         if (file.type.startsWith("image/")) {
-          const arrayBuffer = await file.arrayBuffer();
-          const base64 = Buffer.from(arrayBuffer).toString("base64");
-          initialMessage.content.push({
-            type: "image" as const,
-            image: `data:${file.type};base64,${base64}`,
+          content.push({
+            type: "image",
+            image: `data:${file.type};base64,${file.data}`,
           });
         }
       }
     }
 
+    const initialUserMessage: Message = {
+      role: "user",
+      content,
+    };
+
+    // Create chat with initial message
     const chatId = await fetchMutation(api.chats.createChat, {
       user_id: convexUser._id,
       title,
-      messages: [initialMessage],
+      messages: [initialUserMessage], // Start with the initial user message
       fileData,
       visibility: "private",
     });

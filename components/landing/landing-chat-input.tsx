@@ -83,7 +83,7 @@ export function LandingChatInput({ className }: { className?: string }) {
       setIsSubmitting(true);
 
       try {
-        // Create chat with message and files
+        // Create empty chat and pass initial message via URL params
         const files = attachments.map((attachment) => attachment.file);
         const result = await createChatFromMessage({
           message: input,
@@ -91,7 +91,7 @@ export function LandingChatInput({ className }: { className?: string }) {
         });
 
         if (result.success && result.chatId) {
-          // Navigate to the new chat
+          // Navigate to the new chat (no query params needed)
           router.push(`/chat/${result.chatId}`);
         }
       } catch (error) {

@@ -79,8 +79,7 @@ export async function POST(req: Request) {
       messages,
       maxRetries: 0, // do not retry on errors
       ...modelParams,
-      onFinish({ usage, response }) {
-        console.log("Response", response);
+      onFinish({ usage }) {
         console.log("Token usage:", usage);
       },
     });
