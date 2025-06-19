@@ -25,8 +25,8 @@ export function HeroSection() {
           </span>
         </h1>
         <p className="text-lg sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-4">
-          Open source v0 alternative. Create beautiful Next.js apps, or React
-          components by simply describing what you want to build.
+          Open source v0 alternative. Create beautiful React components by
+          simply describing what you want to build.
         </p>
       </div>
     </div>
